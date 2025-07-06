@@ -1,0 +1,9 @@
+{
+  "name": "demo_stage_1",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "fastify": "^5.4.0"
+  }
+}
