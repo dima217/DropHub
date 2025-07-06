@@ -16,4 +16,11 @@ interface UploadSession {
     createdAt: Date;
     expiresAt?: Date;
 }
-  
+
+interface FileRoom {
+    id: string;
+    files: string[];
+    createdAt: Date;
+    expiresAt?: Date; 
+    maxBytes: number; 
+}
