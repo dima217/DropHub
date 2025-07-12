@@ -1,5 +1,6 @@
-interface SharedFile {
-    id: string;
+import { Types } from "mongoose";
+export interface SharedFile {
+    _id: Types.ObjectId;
     originalName: string;
     storedName: string;
     size: number;
@@ -10,16 +11,16 @@ interface SharedFile {
     expiresAt?: Date;   
 }
 
-interface UploadSession {
-    id: string;
-    files: string[];
+export interface UploadSession {
+    _id: Types.ObjectId;
+    files: SharedFile[];
     createdAt: Date;
     expiresAt?: Date;
 }
 
-interface FileRoom {
-    id: string;
-    files: string[];
+export interface FileRoom {
+    files: SharedFile[];
+    groups: UploadSession[];
     createdAt: Date;
     expiresAt?: Date; 
     maxBytes: number; 
