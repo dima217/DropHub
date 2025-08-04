@@ -7,7 +7,7 @@ export default fp(async function (fastify, opts) {
       fastify.log.error('MONGO_URI is not defined')
       process.exit(1)
     }
-  
+
     try {
       await mongoose.connect(uri)
       fastify.log.info('MongoDB connected')

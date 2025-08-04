@@ -1,4 +1,4 @@
-import { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import { SharedFile } from "../interfaces/files"
 
 const sharedFileSchema = new Schema<SharedFile> ({
@@ -15,3 +15,7 @@ const sharedFileSchema = new Schema<SharedFile> ({
         index: { expires: 0 }, 
     },
 })
+
+const FileModel = mongoose.model("File", sharedFileSchema)
+
+export default FileModel;
