@@ -3,14 +3,14 @@ import { File } from "buffer";
 import { FastifyReply, FastifyRequest } from "fastify"
 import { UploadFileToS3AndSaveMetaData } from "services/fileUpload";
 
-interface uploadRequestBody {
+export interface uploadRequestBody {
     roomId: string;
     username: string;
 }
 
 interface UploadRequest extends FastifyRequest<{Body: uploadRequestBody}> {}
 
-export async function uploadController(req: UploadRequest, reply: FastifyReply) {
+async function uploadController(req: UploadRequest, reply: FastifyReply) {
     const { roomId, username } = req.body
     const file = await req.file();
     const ip = req.ip;
@@ -27,5 +27,6 @@ export async function uploadController(req: UploadRequest, reply: FastifyReply) 
     })
   
     return reply.send({ success: true })
-  }
-  
+}
+
+export default uploadController;
