@@ -1,20 +1,22 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
-import s3 from '../config/s3.js'
-import FileModel from "models/SharedFile.js";
+import s3 from '../config/s3'
+import FileModel from "../models/SharedFile";
 import { Multipart, MultipartFile } from "@fastify/multipart";
 
 interface uploadParams {
-    username: string;
     roomId: string;
     file: MultipartFile;
     uploaderIp: string;
 }
 
-export async function UploadFileToS3AndSaveMetaData({file, roomId, username, uploaderIp}: uploadParams) {
+export async function UploadFileToS3AndSaveMetaData({file, roomId, uploaderIp}: uploadParams) {
     const fileKey = `${roomId}/${randomUUID()}-${file.filename}`
 
     const fileBuffer = await file.toBuffer();
+
+    console.log('AccessKeyId:', process.env.S3_ACCESS_KEY_ID);
+    console.log('SecretAccessKey:', process.env.S3_SECRET_ACCESS_KEY);
 
     await s3.send(
         new PutObjectCommand({
@@ -35,4 +37,7 @@ export async function UploadFileToS3AndSaveMetaData({file, roomId, username, upl
         uploaderIp: uploaderIp,
         expiresAt: new Date(Date.now() + 60 * 60 * 1000 * 24)
     })
+
+    await fileUploadMeta.save();
 } 
+

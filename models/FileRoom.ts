@@ -15,3 +15,5 @@ const fileRoomSchema = new Schema<FileRoom> ({
         default: 1024,
     }
 })
+
+export const RoomModel = mongoose.model('Room', fileRoomSchema)

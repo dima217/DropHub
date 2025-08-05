@@ -1,4 +1,3 @@
-// @ts-ignore
 import { S3Client } from "@aws-sdk/client-s3";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 import https from "https"

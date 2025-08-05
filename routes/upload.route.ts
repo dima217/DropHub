@@ -1,7 +1,11 @@
-import { FastifyInstance } from 'fastify'
-import uploadController, { uploadRequestBody } from '../controllers/shareController'
+import fastify, { FastifyInstance } from 'fastify'
+import { createRoomController, uploadController, UploadRequestBody } from '../controllers/shareController'
 
 export default async function uploadRoute(fastify: FastifyInstance) {
-    fastify.post<{ Body: uploadRequestBody }>('/upload', uploadController)
 
+    fastify.post('/upload', uploadController)
+
+    fastify.post('/createRoom', createRoomController)
+    
 }
+
