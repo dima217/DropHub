@@ -18,7 +18,8 @@
   },
   "scripts": {
     "dev": "ts-node -r tsconfig-paths/register ./server/server.ts",
-    "prod": "node -r tsconfig-paths/register dist/server/server.js"
+    "prod": "node -r tsconfig-paths/register dist/server/server.js",
+    "start:s3": "ts-node ./config/s3.ts"
   },
   "devDependencies": {
     "@types/multer": "^2.0.0",

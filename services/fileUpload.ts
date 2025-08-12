@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 import s3 from '../config/s3'
 import FileModel from "../models/SharedFile";
 import { Multipart, MultipartFile } from "@fastify/multipart";
+import { RoomModel } from "models/FileRoom";
 
 interface uploadParams {
     roomId: string;
@@ -11,16 +12,13 @@ interface uploadParams {
 }
 
 export async function UploadFileToS3AndSaveMetaData({file, roomId, uploaderIp}: uploadParams) {
+
     const fileKey = `${roomId}/${randomUUID()}-${file.filename}`
-
     const fileBuffer = await file.toBuffer();
-
-    console.log('AccessKeyId:', process.env.S3_ACCESS_KEY_ID);
-    console.log('SecretAccessKey:', process.env.S3_SECRET_ACCESS_KEY);
 
     await s3.send(
         new PutObjectCommand({
-          Bucket: process.env.S3_BUCKET!,
+          Bucket: 'drop-hub-storage',
           Key: fileKey,
           Body: fileBuffer,
           ContentType: file.mimetype,
@@ -38,6 +36,10 @@ export async function UploadFileToS3AndSaveMetaData({file, roomId, uploaderIp}: 
         expiresAt: new Date(Date.now() + 60 * 60 * 1000 * 24)
     })
 
+    await RoomModel.findByIdAndUpdate(roomId, {
+        $push: {files: fileUploadMeta.id}
+    })
+
     await fileUploadMeta.save();
-} 
+}
 

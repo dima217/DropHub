@@ -6,6 +6,5 @@ export default async function uploadRoute(fastify: FastifyInstance) {
     fastify.post('/upload', uploadController)
 
     fastify.post('/createRoom', createRoomController)
-    
 }
 
