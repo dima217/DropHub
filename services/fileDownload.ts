@@ -1,4 +1,4 @@
-import { S3DuplexStream } from "utils/S3InputStream"
+import { S3ReadStream } from "utils/S3ReadStream"
 
 interface downloadInterface {
     bucket: string, 
@@ -6,5 +6,5 @@ interface downloadInterface {
 }
 
 export async function downloadFile(params: downloadInterface) {
-    const stream = new S3DuplexStream(params.bucket, params.key)
+    const stream = new S3ReadStream(params.bucket, params.key)
 }

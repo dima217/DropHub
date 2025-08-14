@@ -5,7 +5,7 @@ import FileModel from "../models/SharedFile";
 import { Multipart, MultipartFile } from "@fastify/multipart";
 import { RoomModel } from "models/FileRoom";
 import { MAX_UPLOAD_SIZE, UPLOAD_STRATEGY } from "constants/constants";
-import { S3WriteStream } from "utils/S3InputStream";;
+import { S3WriteStream } from "utils/S3WriteStream";;
 
 const stream = new S3WriteStream('drop-hub-storage');
 interface uploadParams {

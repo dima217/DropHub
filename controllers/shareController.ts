@@ -3,7 +3,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { completeMultipart, initUploading, initUploadMultipart, UploadFileToS3AndSaveMetaData } from "../services/fileUpload";
 import { RoomModel } from "../models/FileRoom";
 import { error } from "console";
-import { S3WriteStream } from "utils/S3InputStream";
+import { S3WriteStream } from "utils/S3WriteStream";
 
 export interface UploadRequestBody {
   roomId: string;
