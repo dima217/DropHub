@@ -5,6 +5,8 @@ interface downloadInterface {
     key: string, 
 }
 
-export async function downloadFile(params: downloadInterface) {
-    const stream = new S3ReadStream(params.bucket, params.key)
+export async function getStream(params: downloadInterface) {
+    const s3Reader = new S3ReadStream(params.bucket, params.key);
+    const stream = s3Reader.download();
+    return stream;
 }
