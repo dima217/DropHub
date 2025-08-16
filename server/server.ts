@@ -3,6 +3,7 @@ import mongoPlugin from '../plugins/mongo'
 import multipart from '@fastify/multipart'
 import uploadRoute from '../routes/upload.route';
 import fastifyEnv from "@fastify/env";
+import "../services/jobs/cron_expireFile"
 
 const schema = {
   type: 'object',

@@ -32,7 +32,6 @@ export interface UploadComplete {
 
 export interface downloadInterface {
   Body: {
-    bucket: string, 
     key: string, 
   }
 }
