@@ -25,7 +25,7 @@ async function listBuckets() {
         const data = await s3.send(new ListBucketsCommand({}));
         console.log("Buckets:", data.Buckets);
     } catch (error) {
-        console.error("Ошибка:", error);
+        console.error("Error:", error);
     }
 }
 

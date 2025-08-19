@@ -12,7 +12,7 @@ const sharedFileSchema = new Schema<SharedFile> ({
     expiresAt: {
         type: Date,
         default: () => new Date(Date.now() + 1000 * 60 * 60 * 6),
-        index: { expires: 0 }, 
+        // index: { expires: 0 }, 
     },
 })
 

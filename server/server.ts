@@ -1,7 +1,8 @@
 import Fastify from 'fastify';
 import mongoPlugin from '../plugins/mongo'
 import multipart from '@fastify/multipart'
-import uploadRoute from '../routes/upload.route';
+import fileRoute from '../routes/file.route';
+import roomRoute from 'routes/room.route';
 import fastifyEnv from "@fastify/env";
 import "../services/jobs/cron_expireFile"
 
@@ -25,7 +26,8 @@ const app = Fastify({ logger: true });
 app.register(fastifyEnv, options)
 app.register(mongoPlugin);
 app.register(multipart);
-app.register(uploadRoute);
+app.register(fileRoute);
+app.register(roomRoute);
 
 app.listen({ port: 3000 }, (err, address) => {
   if (err) {
