@@ -23,7 +23,7 @@ export async function getFilesByRoomsID(roomId: string) {
         throw new Error("Room hasn't been found");
     }
     const validFiles = room.files.filter(file => {
-        return !file.expiresAt || file.expiresAt < new Date();
+        return !file.expiresAt || file.expiresAt > new Date();
     })
 
     return validFiles;

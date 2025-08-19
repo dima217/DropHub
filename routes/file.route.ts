@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { deleteFileController } from 'controllers/fileController'
 import { uploadController, uploadInitController, uploadMultipartInitController } from 'controllers/uploadController'
 import { downloadFileController } from 'controllers/downloadController'
+import { getDownloadLink } from 'services/fileDownload'
 
 export default async function fileRoute(fastify: FastifyInstance) {
 
@@ -16,5 +17,11 @@ export default async function fileRoute(fastify: FastifyInstance) {
     fastify.post('/download', downloadFileController);
 
     fastify.patch('/file', deleteFileController)
+
+    fastify.post("/download-link", async (req, reply) => {
+        const { key } = req.body as { key: string };
+        const url = await getDownloadLink(key);
+        return { url };
+    });
 }
 
