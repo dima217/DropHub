@@ -1,6 +1,9 @@
 import { FastifyInstance } from 'fastify'
-import { createRoomController } from 'controllers/roomController'
+import { createRoomController, deleteRoomController } from 'controllers/roomController'
 
 export default async function roomRoute(fastify: FastifyInstance) {
-    fastify.post('/createRoom', createRoomController)
+    
+    fastify.post('/room', createRoomController)
+
+    fastify.delete('/room', deleteRoomController)
 }

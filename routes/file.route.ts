@@ -15,6 +15,6 @@ export default async function fileRoute(fastify: FastifyInstance) {
 
     fastify.post('/download', downloadFileController);
 
-    fastify.delete('/file', deleteFileController)
+    fastify.patch('/file', deleteFileController)
 }
 

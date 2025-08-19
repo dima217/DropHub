@@ -30,7 +30,11 @@ export interface downloadInterface {
 }
 
 export interface DeleteFileBody {
-  files: string[];
+    files: string[];
+}
+
+export interface DeleteRoomBody {
+    roomId: string;
 }
 
 export interface GetFilesBody {
