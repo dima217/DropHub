@@ -96,9 +96,26 @@ export async function completeMultipart(
     })
 
     await RoomModel.findByIdAndUpdate(params.roomId, {
-        $push: {files: fileUploadMeta.id}
+        $push: {files: fileUploadMeta.id},
+        $set: {"uploadSession.status": "complete"}
     })
-
     await fileUploadMeta.save();
 }
+
+export async function cancelUpload(roomId: string, uploadId: string) {
+    await RoomModel.findOneAndUpdate(
+      { _id: roomId, "uploadSession.uploadId": uploadId },
+      { $set: { "uploadSession.status": "canceled" } }
+    );
+}
+
+export async function stopUpload(roomId: string, uploadId: string) {
+    await RoomModel.findOneAndUpdate(
+      { _id: roomId, "uploadSession.uploadId": uploadId },
+      { $set: { "uploadSession.status": "stopped" } }
+    );
+}
+
+
+
 

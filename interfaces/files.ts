@@ -24,4 +24,8 @@ export interface FileRoom {
     createdAt: Date;
     expiresAt?: Date; 
     maxBytes: number; 
+    uploadSession: {
+        uploadId: string,
+        status: string
+    },
 }

@@ -42,4 +42,5 @@ export async function getFilesController(req: FastifyRequest<{Body: GetFilesBody
         reply.status(404).send({error: "Failed reaching room:", details: err})
     }
 }
+
   

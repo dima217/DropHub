@@ -14,6 +14,10 @@ export async function getStream(params: downloadInterface) {
 }
 
 export async function getDownloadLink(key: string) {
+    if (!key) {
+        throw new Error("S3 key is required");
+    }
+
     const command = new GetObjectCommand({
       Bucket: 'drop-hub-storage',
       Key: key,

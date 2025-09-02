@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { getStream } from "services/fileDownload";
+import { getDownloadLink, getStream } from "services/fileDownload";
 import FileModel from "models/SharedFile";
 import { downloadInterface } from "constants/interfaces";
 
@@ -30,4 +30,12 @@ export async function downloadFileController(req: FastifyRequest<downloadInterfa
   }
 }
 
-
+export async function downloadFileByURLController(req: FastifyRequest<downloadInterface>, reply: FastifyReply) {
+  try {
+    let url = getDownloadLink(req.body.key); 
+    return reply.code(200).send(url);
+  } catch(err) {
+    req.log.error(err);
+    return reply.code(500).send(({error: "Could not upload file2"}))
+  }
+}

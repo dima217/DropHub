@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import { FileRoom } from "../interfaces/files"
+import { FileUploadStatus } from "constants/constants";
 
 const fileRoomSchema = new Schema<FileRoom> ({
     files: [{type: mongoose.Schema.Types.ObjectId, ref: 'SharedFile'}],
@@ -13,6 +14,14 @@ const fileRoomSchema = new Schema<FileRoom> ({
     maxBytes: {
         type: Number,
         default: 1024,
+    },
+    uploadSession: {
+        uploadId: {type: String},
+        status: {
+            type: String,
+            enum: Object.values(FileUploadStatus),
+            default: "in_progress",
+        },
     }
 })
 
