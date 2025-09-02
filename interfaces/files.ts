@@ -9,6 +9,10 @@ export interface SharedFile {
     downloadCount: number;
     uploaderIp?: string;
     expiresAt?: Date;   
+    uploadSession: {
+        uploadId: string,
+        status: string
+    },
 }
 
 export interface UploadSession {
@@ -23,6 +27,12 @@ export interface FileRoom {
     groups: UploadSession[];
     createdAt: Date;
     expiresAt?: Date; 
+    maxBytes: number; 
+}
+export interface UserStorage {
+    files: SharedFile[];
+    createdAt: Date;
+    permissions: string;
     maxBytes: number; 
     uploadSession: {
         uploadId: string,

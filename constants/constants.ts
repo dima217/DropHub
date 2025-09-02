@@ -4,10 +4,16 @@ export const UPLOAD_STRATEGY = {
   SINGLE: "single",
   MULTIPART: "multipart"
 }
+
 export enum FileUploadStatus {
   InProgress = "in_progress",
   Completed = "completed",
   Failed = "failed",
   Canceled = "canceled",
-  Stopped = "stopped"
+  Stopped = "stopped",
+}
+
+export enum UserStoragePermission {
+  Private = "private",
+  Public = "public",
 }

@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import { SharedFile } from "../interfaces/files"
+import { FileUploadStatus } from "constants/constants";
 
 const sharedFileSchema = new Schema<SharedFile> ({
     originalName: {type: String, required: true},
@@ -14,6 +15,14 @@ const sharedFileSchema = new Schema<SharedFile> ({
         default: () => new Date(Date.now() + 1000 * 60 * 60 * 6),
         // index: { expires: 0 }, 
     },
+    uploadSession: {
+        uploadId: {type: String},
+        status: {
+            type: String,
+            enum: Object.values(FileUploadStatus),
+            default: "in_progress",
+        },
+    }
 })
 
 const FileModel = mongoose.model("File", sharedFileSchema)
