@@ -8,6 +8,7 @@ import { AppConfig } from './config/configuration.interface';
 import { User } from './modules/user/entities/user.entity';
 import { ScheduleModule } from '@nestjs/schedule';
 import { UserModule } from './modules/user/user.module';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [
@@ -39,6 +40,8 @@ import { UserModule } from './modules/user/user.module';
         };
       }
     }),
+    
+    MongooseModule.forRoot('mongodb+srv://dmitrypikulik77:Sp88Lp2k88@demodrophub.pcjp8zi.mongodb.net/?retryWrites=true&w=majority&appName=DemoDropHub'),
     ScheduleModule.forRoot(),
     UserModule,
   ],
