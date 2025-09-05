@@ -66,17 +66,17 @@ export class UserController {
   async findAll(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 100,
-    @Res() res: FastifyReply
+    @Res() res: FastifyReply,
   ) {
     const [users, total] = await this.userService.findAllPaginated(page, limit);
-  
+
     const start = (page - 1) * limit;
     const end = start + users.length - 1;
-  
+
     res.header('Content-Range', `users ${start}-${end}/${total}`);
     res.header('Access-Control-Expose-Headers', 'Content-Range');
     res.status(HttpStatus.OK).send(users);
-}
+  }
 
   //Admin endpoint
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -126,7 +126,7 @@ export class UserController {
   ) {
     return this.userService.updateUserBalance(req.user.id, body.balance);
   }
-  
+
   //Admin endpoint
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
