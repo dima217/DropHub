@@ -1,6 +1,6 @@
 import { error } from "console";
 import { FastifyReply, FastifyRequest } from "fastify";
-import { deleteFiles, getFilesByRoomsID } from "services/fileService";
+import { deleteFiles, getFilesByRoomID } from "services/file/fileService";
 
 export interface DeleteFileBody {
     files: string[];
@@ -36,7 +36,7 @@ export async function getFilesController(req: FastifyRequest<{Body: GetFilesBody
     }
 
     try {
-        const files = await getFilesByRoomsID(roomId);
+        const files = await getFilesByRoomID(roomId);
         reply.status(200).send(files);
     } catch(err) {
         reply.status(404).send({error: "Failed reaching room:", details: err})

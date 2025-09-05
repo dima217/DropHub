@@ -1,6 +1,6 @@
 import { MultipartFile } from "@fastify/multipart";
 import { FastifyReply, FastifyRequest } from "fastify";
-import { completeMultipart, initUploading, initUploadMultipart, UploadFileToS3AndSaveMetaData } from "services/fileUpload";
+import { completeMultipart, initUploading, initUploadMultipart, UploadFileToS3AndSaveMetaData } from "services/file/fileUpload";
 import { UploadComplete, UploadInitMultipart, UploadInitRequestBody } from "constants/interfaces";
 
 export async function uploadController(req: FastifyRequest, reply: FastifyReply) {

@@ -24,4 +24,4 @@ const userStorageSchema = new Schema<UserStorage> ({
     }
 })
 
-export const RoomModel = mongoose.model('Room', userStorageSchema)
+export const UserStorageModel = mongoose.model('Room', userStorageSchema)

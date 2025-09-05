@@ -1,8 +1,8 @@
 import { FastifyInstance } from 'fastify'
 import { deleteFileController } from 'controllers/fileController'
-import { uploadController, uploadInitController, uploadMultipartInitController } from 'controllers/uploadController'
-import { downloadFileController } from 'controllers/downloadController'
-import { getDownloadLink } from 'services/fileDownload'
+import { uploadController, uploadInitController, uploadMultipartInitController } from 'controllers/fileUploadController'
+import { downloadFileController } from 'controllers/fileDownloadController'
+import { getDownloadLink } from 'services/file/fileDownload'
 
 export default async function fileRoute(fastify: FastifyInstance) {
 

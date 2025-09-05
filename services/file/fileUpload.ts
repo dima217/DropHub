@@ -1,7 +1,7 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
-import s3 from '../config/s3'
-import FileModel from "../models/SharedFile";
+import s3 from '../../config/s3'
+import FileModel from "../../models/SharedFile";
 import { Multipart, MultipartFile } from "@fastify/multipart";
 import { RoomModel } from "models/FileRoom";
 import { MAX_UPLOAD_SIZE, UPLOAD_STRATEGY } from "constants/constants";

@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { getDownloadLink, getStream } from "services/fileDownload";
+import { getDownloadLink, getStream } from "services/file/fileDownload";
 import FileModel from "models/SharedFile";
 import { downloadInterface } from "constants/interfaces";
 
