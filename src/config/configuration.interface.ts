@@ -45,6 +45,11 @@ export class RedisConfig {
   password: string;
 }
 
+export class MongoConfig {
+  @IsString()
+  uri: string;
+}
+
 export class AppConfig {
   @IsString()
   environment: string;
@@ -54,6 +59,9 @@ export class AppConfig {
 
   @ValidateNested()
   postgres: PostgresConfig;
+
+  @ValidateNested()
+  mongo: MongoConfig;
 
   @ValidateNested()
   swagger: SwaggerConfig;

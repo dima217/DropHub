@@ -14,6 +14,9 @@ export const configuration = (): AppConfig => {
       password: process.env.DB_PASSWORD || '',
       database: process.env.DB_DATABASE || 'myapp',
     },
+    mongo: {
+      uri: process.env.MONGO_URL || '',
+    },
     swagger: {
       title: process.env.SWAGGER_TITLE,
       description: process.env.SWAGGER_DESCRIPTION,

@@ -3,10 +3,10 @@ import { Injectable } from "@nestjs/common";
 import { Queue } from "bullmq";
 
 @Injectable()
-export class FileCleanupService {
+export class FileQueueService {
     constructor(@InjectQueue('file-cleanup') private readonly queue: Queue) {}
 
-    async addFileToQueue(storedName: string) {
+    async addFileToDeleteQueue(storedName: string) {
         await this.queue.add('delete-file', { storedName });
     }
 }

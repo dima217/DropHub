@@ -1,8 +1,8 @@
 import { NestFactory } from "@nestjs/core";
-import { AppModule } from "src/app.module";
+import { FileCleanAppModule } from "./file.queue.module";
 
 async function bootstrap() {
-    const app = await NestFactory.createApplicationContext(AppModule);
+    const app = await NestFactory.createApplicationContext(FileCleanAppModule);
     console.log('Worker running...');
 }
 bootstrap();
