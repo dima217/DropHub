@@ -1,9 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import Document from 'mongoose';
-import { SharedFile } from '../../../constants/schemas';
+import { Document } from 'mongoose';
 import { FileUploadStatus } from 'src/constants/interfaces';
 
-export type FileDocument = SharedFile & Document;
+export type FileDocument = File & Document;
 
 @Schema({ timestamps: true })
 export class File {

@@ -32,7 +32,6 @@ import { RolesGuard } from 'src/auth/guards/roles-guard';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import { UserUpdateProfileDTO } from '../dto/update-profile.dto';
 import type { JwtAuthRequest } from 'src/types/express';
-import { UpdateBalanceDto } from '../dto/update-user-balance.dto';
 
 @ApiTags('Users')
 @Controller('users')

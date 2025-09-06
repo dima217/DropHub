@@ -15,7 +15,6 @@ export interface SharedFile {
         status: string
     },
 }
-
 export interface UploadSession {
     _id: Types.ObjectId;
     files: SharedFile[];
