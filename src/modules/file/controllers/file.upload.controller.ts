@@ -11,12 +11,9 @@ import {
 import { FileInterceptor } from "@nestjs/platform-express";
 import type { Request } from "express";
 import { FileUploadService } from "../services/file.upload.service";
-import type {
-    UploadComplete,
-    UploadInitMultipart,
-    UploadInitRequestBody,
-} from "../interfaces/file-request.interface";
-
+import { UploadInitDto } from "../dto/upload/upload.init.dto";
+import { UploadInitMultipartDto } from "../dto/upload/upload.init.multipart.dto";
+import { UploadCompleteDto } from "../dto/upload/upload.complete.dto";
   
   @Controller("/upload")
   export class FileUploadController {
@@ -55,7 +52,7 @@ import type {
     }
   
     @Post("init")
-    async uploadInit(@Body() body: UploadInitRequestBody) {
+    async uploadInit(@Body() body: UploadInitDto) {
       try {
         const strategy = await this.filesUploadService.initUploading(
           body.fileSize
@@ -78,7 +75,7 @@ import type {
     }
   
     @Post("multipart/init")
-    async uploadMultipartInit(@Body() body: UploadInitMultipart) {
+    async uploadMultipartInit(@Body() body: UploadInitMultipartDto) {
       try {
         const initRes = await this.filesUploadService.initUploadMultipart(
           body.fileName,
@@ -103,7 +100,7 @@ import type {
   
 
     @Post("multipart/complete")
-    async uploadComplete(@Body() body: UploadComplete, @Req() req: Request) {
+    async uploadComplete(@Body() body: UploadCompleteDto, @Req() req: Request) {
       try {
         const ip = req.ip;
         await this.filesUploadService.completeMultipart(body, ip ?? 'none');

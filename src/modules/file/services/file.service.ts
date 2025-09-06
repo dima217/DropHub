@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { File, FileDocument } from '../schemas/file.schema';
-import { FileRoom, FileRoomDocument } from '../../room/schemas/room.schema';
+import { Room, RoomDocument } from '../../room/schemas/room.schema';
 
 export interface DeleteFileBody {
   files: string[];
@@ -12,7 +12,7 @@ export interface DeleteFileBody {
 export class FilesService {
   constructor(
     @InjectModel(File.name) private readonly fileModel: Model<FileDocument>,
-    @InjectModel(FileRoom.name) private readonly roomModel: Model<FileRoomDocument>,
+    @InjectModel(Room.name) private readonly roomModel: Model<RoomDocument>,
   ) {}
 
   /**

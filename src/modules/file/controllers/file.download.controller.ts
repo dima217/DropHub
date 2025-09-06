@@ -8,10 +8,10 @@ import {
   } from "@nestjs/common";
 import type { Response } from "express";
 import { File, FileDocument } from "../schemas/file.schema";
-import type { downloadInterface } from "../interfaces/file-request.interface";
 import { FileDownloadService } from '../services/file.download.service';
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
+import { DownloadFileDto } from "../dto/download/download.file.dto";
   
   @Controller("/download")
   export class FileDownloadController {
@@ -19,10 +19,10 @@ import { Model } from "mongoose";
         private readonly fileDownloadService: FileDownloadService,
         @InjectModel(File.name) private readonly fileModel: Model<FileDocument>
     ) {}
-    
+
     @Post()
     async downloadFile(
-      @Body() body: downloadInterface,
+      @Body() body: DownloadFileDto,
       @Res() res: Response
     ) {
       try {
@@ -61,7 +61,7 @@ import { Model } from "mongoose";
     }
   
     @Post("url")
-    async downloadFileByURL(@Body() body: downloadInterface) {
+    async downloadFileByURL(@Body() body: DownloadFileDto) {
       try {
         const url = this.fileDownloadService.getDownloadLink(body.key);
         return { url };

@@ -7,8 +7,9 @@ import { File, FileDocument } from '../schemas/file.schema';
 import { Room, RoomDocument } from '../../room/schemas/room.schema';
 import { MAX_UPLOAD_SIZE, UPLOAD_STRATEGY } from '../../../constants/interfaces';
 import { S3Service } from 'src/s3/s3.service';
-import { CompletedPart, PutObjectCommand } from '@aws-sdk/client-s3';
-import { UploadComplete, UploadToS3Request } from '../interfaces/file-request.interface';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { UploadCompleteDto } from '../dto/upload/upload.complete.dto';
+import { UploadToS3Request } from '../interfaces/file-request.interface';
 
 @Injectable()
 export class FileUploadService {
@@ -74,7 +75,7 @@ export class FileUploadService {
   }
 
   async completeMultipart(
-    params: UploadComplete,
+    params: UploadCompleteDto,
     ip: string,
   ) {
     await this.s3Stream.completeMultipart(params.key, params.uploadId, params.parts);
