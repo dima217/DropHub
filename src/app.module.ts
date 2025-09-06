@@ -9,6 +9,11 @@ import { User } from './modules/user/entities/user.entity';
 import { ScheduleModule } from '@nestjs/schedule';
 import { UserModule } from './modules/user/user.module';
 import { MongooseModule } from '@nestjs/mongoose';
+import { BullModule } from '@nestjs/bullmq';
+import { QueueOptions } from 'bullmq';
+import { FileModule } from './modules/file/files.module';
+import { RoomModule } from './modules/room/room.module';
+import { UserStorageModule } from './modules/user_storage/user_storage.module';
 
 @Module({
   imports: [
@@ -40,10 +45,35 @@ import { MongooseModule } from '@nestjs/mongoose';
         };
       }
     }),
+
+    BullModule.forRootAsync({
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        useFactory: (config: ConfigService<AppConfig>): QueueOptions => {
+    
+          const redisConfig = config.get<{ host: string; port: number; password: string }>('redis');
+    
+          if (!redisConfig) {
+              throw new Error('Redis configuration is missing!')
+          }
+          return {
+            connection: {
+              host: redisConfig.host,
+              port: redisConfig.port,
+              password: redisConfig.password,
+            },
+          };
+        },
+    }),
     
     MongooseModule.forRoot('mongodb+srv://dmitrypikulik77:Sp88Lp2k88@demodrophub.pcjp8zi.mongodb.net/?retryWrites=true&w=majority&appName=DemoDropHub'),
     ScheduleModule.forRoot(),
+
     UserModule,
+    FileModule,
+    RoomModule,
+    UserStorageModule,
+    
   ],
   controllers: [AppController],
   providers: [AppService],
