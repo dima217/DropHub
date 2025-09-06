@@ -138,16 +138,6 @@ export class UsersService {
     await this.cacheService.deleteByPattern(`user:${id}`);
   }
 
-  async updateUserBalance(userId: number, newBalance: number): Promise<void> {
-    await this.cacheService.delete(`user:${userId}`);
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException(`User with id ${userId} not found`);
-    }
-    user.balance += newBalance;
-    await this.usersRepository.update(userId, user);
-  }
-
   async updateUserToken(id: number, dto: UpdateUserResetDto): Promise<void> {
     await this.usersRepository.update(id, {
       resetPasswordToken: dto.resetPasswordToken,

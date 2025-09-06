@@ -117,16 +117,6 @@ export class UserController {
     return this.userService.updateUserProfile(req.user.id, dto);
   }
 
-  @Put('/balance/update')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('user', 'admin')
-  async updateUserBalance(
-    @Req() req: JwtAuthRequest,
-    @Body() body: UpdateBalanceDto,
-  ) {
-    return this.userService.updateUserBalance(req.user.id, body.balance);
-  }
-
   //Admin endpoint
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
