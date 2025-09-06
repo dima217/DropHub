@@ -2,10 +2,10 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { FileUploadStatus } from '../../../constants/interfaces';
 
-export type FileRoomDocument = FileRoom & Document;
+export type RoomDocument = Room & Document;
 
 @Schema({ timestamps: true })
-export class FileRoom {
+export class Room {
   @Prop({ type: [{ type: Types.ObjectId, ref: 'SharedFile' }], default: [] })
   files: Types.ObjectId[];
 
@@ -38,4 +38,4 @@ export class FileRoom {
   };
 }
 
-export const RoomSchema = SchemaFactory.createForClass(FileRoom);
+export const RoomSchema = SchemaFactory.createForClass(Room);

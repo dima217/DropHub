@@ -4,21 +4,21 @@ import { Model } from 'mongoose';
 import { randomUUID } from 'crypto';
 import { S3WriteStream } from '../utils/s3-write-stream';
 import { File, FileDocument } from '../schemas/file.schema';
-import { FileRoom, FileRoomDocument } from '../../room/schemas/room.schema';
+import { Room, RoomDocument } from '../../room/schemas/room.schema';
 import { MAX_UPLOAD_SIZE, UPLOAD_STRATEGY } from '../../../constants/interfaces';
 import { S3Service } from 'src/s3/s3.service';
 import { CompletedPart, PutObjectCommand } from '@aws-sdk/client-s3';
 import { UploadComplete, UploadToS3Request } from '../interfaces/file-request.interface';
 
 @Injectable()
-export class FilesUploadService {
+export class FileUploadService {
   private readonly bucket: string;
 
   constructor(
     private readonly s3Service: S3Service,
     private readonly s3Stream: S3WriteStream,
     @InjectModel(File.name) private readonly fileModel: Model<FileDocument>,
-    @InjectModel(FileRoom.name) private readonly roomModel: Model<FileRoomDocument>,
+    @InjectModel(Room.name) private readonly roomModel: Model<RoomDocument>,
   ) {
     this.bucket = process.env.AWS_S3_BUCKET ?? '';
     if (!this.bucket) {

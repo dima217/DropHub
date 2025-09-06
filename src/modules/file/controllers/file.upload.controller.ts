@@ -10,7 +10,7 @@ import {
   } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import type { Request } from "express";
-import { FilesUploadService } from "../services/file.upload.service";
+import { FileUploadService } from "../services/file.upload.service";
 import type {
     UploadComplete,
     UploadInitMultipart,
@@ -20,7 +20,7 @@ import type {
   
   @Controller("/upload")
   export class FileUploadController {
-    constructor(private readonly filesUploadService: FilesUploadService) {}
+    constructor(private readonly filesUploadService: FileUploadService) {}
   
     @Post()
     @UseInterceptors(FileInterceptor("file"))
