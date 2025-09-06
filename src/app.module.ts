@@ -14,6 +14,7 @@ import { QueueOptions } from 'bullmq';
 import { FileModule } from './modules/file/files.module';
 import { RoomModule } from './modules/room/room.module';
 import { UserStorageModule } from './modules/user_storage/user_storage.module';
+import { S3Module } from './s3/s3.module';
 
 @Module({
   imports: [
@@ -46,7 +47,7 @@ import { UserStorageModule } from './modules/user_storage/user_storage.module';
       }
     }),
 
-    BullModule.forRootAsync({
+    BullModule.forRootAsync( 'bull-config', {
         imports: [ConfigModule],
         inject: [ConfigService],
         useFactory: (config: ConfigService<AppConfig>): QueueOptions => {
@@ -73,7 +74,8 @@ import { UserStorageModule } from './modules/user_storage/user_storage.module';
     FileModule,
     RoomModule,
     UserStorageModule,
-    
+    S3Module,
+
   ],
   controllers: [AppController],
   providers: [AppService],

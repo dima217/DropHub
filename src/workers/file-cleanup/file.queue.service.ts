@@ -7,6 +7,6 @@ export class FileCleanupService {
     constructor(@InjectQueue('file-cleanup') private readonly queue: Queue) {}
 
     async addFileToQueue(storedName: string) {
-        await this.queue.add('delete-file',{ storedName });
+        await this.queue.add('delete-file', { storedName });
     }
 }

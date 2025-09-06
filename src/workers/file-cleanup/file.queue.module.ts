@@ -10,10 +10,10 @@ import { FileModule } from "src/modules/file/files.module";
   imports: [
     ConfigModule,
     BullModule.registerQueueAsync({
+        configKey: 'bull-config',
         name: 'file-cleanup',
     }),
     S3Module,
-    FileModule,
   ],
 })
 export class FileCleanModuleApp {}
