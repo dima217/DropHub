@@ -1,54 +1,59 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model } from 'mongoose';
 import { randomUUID } from 'crypto';
-import { MultipartFile } from '@fastify/multipart';
 import { S3WriteStream } from '../utils/s3-write-stream';
 import { File, FileDocument } from '../schemas/file.schema';
 import { FileRoom, FileRoomDocument } from '../../room/schemas/room.schema';
 import { MAX_UPLOAD_SIZE, UPLOAD_STRATEGY } from '../../../constants/interfaces';
 import { S3Service } from 'src/s3/s3.service';
 import { CompletedPart, PutObjectCommand } from '@aws-sdk/client-s3';
+import { UploadComplete, UploadToS3Request } from '../interfaces/file-request.interface';
 
 @Injectable()
-export class FilesService {
+export class FilesUploadService {
+  private readonly bucket: string;
+
   constructor(
     private readonly s3Service: S3Service,
     private readonly s3Stream: S3WriteStream,
     @InjectModel(File.name) private readonly fileModel: Model<FileDocument>,
     @InjectModel(FileRoom.name) private readonly roomModel: Model<FileRoomDocument>,
-  ) {}
+  ) {
+    this.bucket = process.env.AWS_S3_BUCKET ?? '';
+    if (!this.bucket) {
+      throw new Error('AWS_S3_BUCKET is not set');
+    }
+  }
 
   private get s3Client() {
     return this.s3Service.getClient();
   }
 
-  async uploadFileToS3AndSaveMetadata(
-    file: MultipartFile,
-    roomId: string,
-    uploaderIp: string,
-  ) {
-    const fileKey = `${roomId}/${randomUUID()}-${file.filename}`;
-    const fileBuffer = await file.toBuffer();
+  async uploadFileToS3AndSaveMetadata(params: UploadToS3Request) {
+    const { file, roomId, uploaderIp } = params;
+
+    const fileKey = `${roomId}/${randomUUID()}-${file.originalname}`;
+    const fileBuffer = file.buffer;
 
     await this.s3Client.send(
-    new PutObjectCommand({
-        Bucket: 'drop-hub-storage',
+      new PutObjectCommand({
+        Bucket: this.bucket,
         Key: fileKey,
         Body: fileBuffer,
         ContentType: file.mimetype,
-    })
+      }),
     );
-    
+
     const fileUploadMeta = new this.fileModel({
-      originalName: file.filename,
+      originalName: file.originalname,
       storedName: fileKey,
       size: fileBuffer.length,
       mimeType: file.mimetype,
       uploadTime: new Date(),
       downloadCount: 0,
       uploaderIp,
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24ч
     });
 
     await this.roomModel.findByIdAndUpdate(roomId, {
@@ -69,15 +74,7 @@ export class FilesService {
   }
 
   async completeMultipart(
-    params: {
-      uploadId: string;
-      key: string;
-      parts: CompletedPart[];
-      roomId: string;
-      fileName: string;
-      fileSize: number;
-      fileType: string;
-    },
+    params: UploadComplete,
     ip: string,
   ) {
     await this.s3Stream.completeMultipart(params.key, params.uploadId, params.parts);
@@ -101,14 +98,14 @@ export class FilesService {
     await fileUploadMeta.save();
   }
 
-  async cancelUpload(roomId: string, uploadId: string) {
+  async cancelUpload(roomId: string, uploadId: string) { // cancel uploading
     await this.roomModel.findOneAndUpdate(
       { _id: roomId, 'uploadSession.uploadId': uploadId },
       { $set: { 'uploadSession.status': 'canceled' } },
     );
   }
 
-  async stopUpload(roomId: string, uploadId: string) {
+  async stopUpload(roomId: string, uploadId: string) {  // stop uploading
     await this.roomModel.findOneAndUpdate(
       { _id: roomId, 'uploadSession.uploadId': uploadId },
       { $set: { 'uploadSession.status': 'stopped' } },
