@@ -2,7 +2,9 @@ import { GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
 import { S3Client } from '@aws-sdk/client-s3';
 import { MAX_DOWNLOAD_SIZE } from '../../../constants/interfaces';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class S3ReadStream {
   private fileSize: number | null = null;
 
