@@ -6,3 +6,7 @@ export interface DeleteFileBody {
   export interface GetFilesBody {
     roomId: string;
 }
+
+export interface downloadInterface {
+    key: string, 
+}
