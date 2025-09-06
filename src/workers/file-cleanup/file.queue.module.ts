@@ -5,6 +5,7 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { DatabaseModule } from "src/config/modules/database.module";
 import { BullConfigModule } from "src/config/modules/bull-config.module";
 import { BullModule } from "@nestjs/bullmq";
+import { FileCleanupService } from "./services/file-cleanup.service";
 
 @Module({
   imports: [
@@ -18,7 +19,6 @@ import { BullModule } from "@nestjs/bullmq";
     ScheduleModule.forRoot(),
   ],
 
-  providers: [FileQueueService],
-  exports: [FileQueueService]
+  providers: [FileQueueService, FileCleanupService],
 })
 export class FileCleanAppModule {}
