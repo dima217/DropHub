@@ -15,7 +15,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import type { FastifyReply } from 'fastify';
-import { UsersService } from '../services/user.service';
+import { UsersService } from '../services/user.service.js';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import {

@@ -8,8 +8,8 @@ import { UsersService } from '../../modules/user/services/user.service';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { IUser } from '../types/types';
-import { nanoid } from 'nanoid';
 import { MailService } from './mail.service';
+import { generateToken } from '../utils/additional.functions';
 
 @Injectable()
 export class AuthService {
@@ -110,7 +110,7 @@ export class AuthService {
     const expiryDate = new Date();
     expiryDate.setHours(expiryDate.getHours() + 1);
 
-    const resetToken = nanoid(64);
+    const resetToken = generateToken(32);
 
     await this.usersService.updateUserToken(user.id, {
       resetPasswordToken: null,

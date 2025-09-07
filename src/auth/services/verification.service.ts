@@ -1,7 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { MailService } from './mail.service';
 import { CacheService } from 'src/cache/cache.service';
-import { nanoid } from 'nanoid';
 
 const EMAIL_CODE_TTL = 600; 
 const EMAIL_CODE_PREFIX = 'emailCode:';
