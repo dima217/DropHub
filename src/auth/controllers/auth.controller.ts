@@ -18,7 +18,9 @@ import { RequestEmailCodeDto } from '../dto/request-email-code.dto';
 import { VerifyEmailCodeDto } from '../dto/verify-email-code.dto';
 import { VerificationService } from '../services/verification.service';
 import type { FastifyReply } from 'fastify';
-import type { AuthRequest, JwtAuthRequest } from 'src/types/express';
+import type { AuthRequest, JwtAuthRequest, RefreshTokenRequest } from 'src/types/express';
+import type { Request, Response } from 'express';
+import { RefreshTokenGuard } from '../guards/refresh-token-guard';
 
 @Controller('auth')
 export class AuthController {
@@ -34,6 +36,19 @@ export class AuthController {
       throw new UnauthorizedException('User not found');
     }
     return this.authService.login(req.user);
+  }
+
+  @Post('refresh-token')
+  @UseGuards(RefreshTokenGuard)
+  async refreshToken(@Req() request: RefreshTokenRequest, @Res() response: Response) {
+    const {refreshToken, isBrowser} = request;
+
+    const payload = await this.authService.refreshToken(refreshToken);
+
+    if (isBrowser) {
+      return response.status(HttpStatus.OK).json(payload);
+    }
+    return payload
   }
 
   @UseGuards(JwtAuthGuard)

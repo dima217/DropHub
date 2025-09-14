@@ -46,6 +46,12 @@ export class User {
   @IsBoolean()
   isBanned: boolean;
 
+  @Column({ default: null, nullable: true })
+  refreshToken: string | null;
+
+  @Column({ default: 0 })
+  tokenVersion: number;
+
   @Column({ type: 'varchar', nullable: true })
   resetPasswordToken: string | null;
 

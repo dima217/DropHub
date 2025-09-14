@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { IUser } from '../types/types';
 import { UsersService } from '../../modules/user/services/user.service';
 import { CacheService } from 'src/cache/cache.service';
+import { cookieOrHeaderExtractor } from '../common/utils/cookie-or-header.extractor';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -19,7 +20,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: cookieOrHeaderExtractor,
       ignoreExpiration: false,
       secretOrKey: secretOrKey,
     });
@@ -36,6 +37,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Your account has been banned.');
     }
 
-    return {id: user.id, email: user.email, username: fullUser?.username, balance: fullUser?.balance, role: fullUser?.role, avatarUrl: fullUser?.avatarUrl };
+    return {id: user.id, role: fullUser?.role };
   }
 }

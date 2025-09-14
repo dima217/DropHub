@@ -8,3 +8,7 @@ interface AuthRequest extends Request {
 interface JwtAuthRequest extends Request {
   user: JUser;
 }
+interface RefreshTokenRequest extends Request {
+  refreshToken: string;
+  isBrowser: boolean;
+}

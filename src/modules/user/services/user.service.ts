@@ -23,7 +23,7 @@ const USER_SELECT_FIELDS = ['id', 'email', 'username', 'balance', 'role', 'avata
 export class UsersService {
   constructor(
     @InjectRepository(User)
-    private usersRepository: Repository<User>,
+    private userRepository: Repository<User>,
     private readonly cacheService: CacheService,
     private readonly jwtService: JwtService,
     private readonly imageService: ImageService,
@@ -33,7 +33,7 @@ export class UsersService {
     const cacheKey = `users:page=${page}&limit=${limit}`;
     
     return this.cacheService.cacheWrapper(cacheKey, async () => {
-      return this.usersRepository.findAndCount({
+      return this.userRepository.findAndCount({
         skip: (page - 1) * limit,
         take: limit,
         order: { id: 'ASC' }
@@ -42,7 +42,7 @@ export class UsersService {
   }
 
   async createUser(createUserDto: CreateUserDto): Promise<CreateUserResponse> {
-    const existingUser = await this.usersRepository.findOne({
+    const existingUser = await this.userRepository.findOne({
       where: { email: createUserDto.email },
       select: ['id']
     });
@@ -51,14 +51,14 @@ export class UsersService {
       throw new ConflictException('User already exists');
     }
 
-    const user = this.usersRepository.create({
+    const user = this.userRepository.create({
       ...createUserDto,
       password: await argon2.hash(createUserDto.password),
       role: UserRole.USER,
       avatarUrl: createUserDto.avatarUrl,
     });
 
-    await this.usersRepository.manager.transaction(async (em) => {
+    await this.userRepository.manager.transaction(async (em) => {
       await em.save(user);
     });
 
@@ -76,7 +76,7 @@ export class UsersService {
     const cacheKey = `user:${id}`;
     
     return this.cacheService.cacheWrapper(cacheKey, async () => {
-      return this.usersRepository.findOne({
+      return this.userRepository.findOne({
         where: { id },
         select: [...USER_SELECT_FIELDS]
       });
@@ -84,20 +84,20 @@ export class UsersService {
   }
 
   findByEmail(email: string): Promise<User | null> {
-    return this.usersRepository.findOne({
+    return this.userRepository.findOne({
       where: { email },
       select: [...USER_SELECT_FIELDS, 'password']
     });
   }
 
   async updateUser(id: number, dto: UpdateUserDto): Promise<User> {
-    const user = await this.usersRepository.findOneBy({ id });
+    const user = await this.userRepository.findOneBy({ id });
     
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    const updatedUser = await this.usersRepository.save({ ...user, ...dto });
+    const updatedUser = await this.userRepository.save({ ...user, ...dto });
     
     await this.cacheService.deleteByPattern(`user:${id}`);
     await this.cacheService.deleteByPattern('users:*');
@@ -106,7 +106,7 @@ export class UsersService {
   }
 
   async updateUserProfile(id: number, userUpdateProfileDTO: UserUpdateProfileDTO): Promise<User> {
-    const user = await this.usersRepository.findOneBy({ id });
+    const user = await this.userRepository.findOneBy({ id });
   
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
@@ -123,7 +123,7 @@ export class UsersService {
     if (userUpdateProfileDTO.avatarUrl) {
       user.avatarUrl = userUpdateProfileDTO.avatarUrl;
     }
-    const savedUser = await this.usersRepository.save(user);
+    const savedUser = await this.userRepository.save(user);
   
     await this.cacheService.deleteByPattern(`user:${id}`);
   
@@ -131,7 +131,7 @@ export class UsersService {
   }
 
   async updatePassword(id: number, newPassword: string): Promise<void> {
-    await this.usersRepository.update(id, {
+    await this.userRepository.update(id, {
       password: await argon2.hash(newPassword)
     });
     
@@ -139,7 +139,7 @@ export class UsersService {
   }
 
   async updateUserToken(id: number, dto: UpdateUserResetDto): Promise<void> {
-    await this.usersRepository.update(id, {
+    await this.userRepository.update(id, {
       resetPasswordToken: dto.resetPasswordToken,
       tokenExpiredDate: dto.tokenExpiredDate,
     });
@@ -147,8 +147,20 @@ export class UsersService {
     await this.cacheService.deleteByPattern(`user:${id}`);
   }
 
+  async updateRefreshToken(userId: number, refreshToken: string | null): Promise<void> {
+    await this.userRepository.update(userId, { refreshToken });
+  }
+
+  async incrementTokenVersion(userId: number): Promise<void> {
+    const user = await this.getUserById(userId);
+    if (user) {
+      user.tokenVersion++;
+      await this.userRepository.save(user);
+    }
+  }
+
   async remove(id: number): Promise<void> {
-    await this.usersRepository.delete(id);
+    await this.userRepository.delete(id);
     await this.cacheService.deleteByPattern(`user:${id}`);
     await this.cacheService.deleteByPattern('users:*');
   }

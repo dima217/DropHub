@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-guard';
 import { RolesGuard } from 'src/auth/guards/roles-guard';
-import { Roles } from 'src/auth/decorators/role.decorator';
+import { Roles } from 'src/auth/common/decorators/role.decorator';
 import type { FastifyRequest } from 'fastify';
 import { ImageService } from './image.service';
 import { v4 as uuidv4 } from 'uuid';

@@ -21,7 +21,7 @@ import { CacheModule } from '../cache/cache.module';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get('JWT_SECRET'),
-        signOptions: { expiresIn: '30d' },
+        signOptions: { expiresIn: '15m' },
       }),
       inject: [ConfigService],
     }),

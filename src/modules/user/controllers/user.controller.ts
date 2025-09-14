@@ -15,7 +15,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import type { FastifyReply } from 'fastify';
-import { UsersService } from '../services/user.service.js';
+import { UsersService } from '../services/user.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import {
@@ -29,7 +29,7 @@ import { User } from '../entities/user.entity';
 import { CreateUserResponse } from '../types/createUserResponse';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-guard';
 import { RolesGuard } from 'src/auth/guards/roles-guard';
-import { Roles } from 'src/auth/decorators/role.decorator';
+import { Roles } from 'src/auth/common/decorators/role.decorator';
 import { UserUpdateProfileDTO } from '../dto/update-profile.dto';
 import type { JwtAuthRequest } from 'src/types/express';
 
