@@ -1,11 +1,10 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Request } from "express";
-import { Observable } from "rxjs";
 
 @Injectable()
 export class RefreshTokenGuard implements CanActivate {
     canActivate(context: ExecutionContext): boolean {
-        const request = context.switchToHttp().getResponse<Request>();
+        const request = context.switchToHttp().getRequest<Request>();
 
         let token: string | undefined;
 

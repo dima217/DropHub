@@ -47,9 +47,15 @@ export class AuthController {
     const payload = await this.authService.refreshToken(refreshToken);
 
     if (isBrowser) {
-      return response.status(HttpStatus.OK).json(payload);
+      response.cookie('refreshToken', payload.refreshToken, {
+        httpOnly: true,
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60,
+      })
+
+      return response.status(HttpStatus.OK).json({ accessToken: payload.accessToken });
     }
-    return payload
+    return payload;
   }
 
   @Get('google')
@@ -59,7 +65,7 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req, @Res() res: Response) {
-    const { user, refreshToken, accessToken } = await this.authService.findOrCreateUser(req.user);
+    const { refreshToken, accessToken } = await this.authService.findOrCreateUser(req.user);
 
     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
     res.redirect(`http://localhost:3000/auth/callback?token=${accessToken}`);
