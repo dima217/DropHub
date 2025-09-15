@@ -21,6 +21,7 @@ import type { FastifyReply } from 'fastify';
 import type { AuthRequest, JwtAuthRequest, RefreshTokenRequest } from 'src/types/express';
 import type { Request, Response } from 'express';
 import { RefreshTokenGuard } from '../guards/refresh-token-guard';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
@@ -49,6 +50,19 @@ export class AuthController {
       return response.status(HttpStatus.OK).json(payload);
     }
     return payload
+  }
+
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth() {}
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthRedirect(@Req() req, @Res() res: Response) {
+    const { user, refreshToken, accessToken } = await this.authService.findOrCreateUser(req.user);
+
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
+    res.redirect(`http://localhost:3000/auth/callback?token=${accessToken}`);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -126,13 +140,13 @@ export class AuthController {
         body.token,
       );
 
-      console.log(`✅ Password changed for userId=${body.userId}`);
+      console.log(`Password changed for userId=${body.userId}`);
 
       res.status(HttpStatus.OK).send(
         '<h1>Password successfully changed</h1><p>You can now log in with your new password.</p>',
       );
     } catch (error) {
-      console.error(`❌ Error: ${error.message}`);
+      console.error(`Error: ${error.message}`);
       res.status(HttpStatus.BAD_REQUEST).send(`<h1>Error</h1><p>${error.message}</p>`);
     }
   }

@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -11,6 +12,8 @@ import { IUser } from '../types/types';
 import { MailService } from './mail.service';
 import { generateToken } from '../common/additional.functions';
 import { ConfigService } from '@nestjs/config';
+import { UserRole } from 'src/modules/user/entities/user.entity';
+import { RegisterUserDto } from '../dto/register.dto';
 
 @Injectable()
 export class AuthService {
@@ -101,6 +104,43 @@ export class AuthService {
             refreshToken,
         };
     }
+  }
+
+  async findOrCreateUser(userDto: {
+    email: string;
+    password?: string;
+    firstName: string;
+    lastName: string;
+    picture?: string;
+    isOAuthUser: boolean;
+  }) {
+    let user = await this.usersService.findByEmail(userDto.email);
+  
+    if (!user) {
+      const passwordHash = userDto.password
+        ? await argon2.hash(userDto.password)
+        : null;
+  
+      user = await this.usersService.createUser({
+        ...userDto,
+        password: passwordHash!,
+        role: UserRole.USER,
+        avatarUrl: userDto.picture,
+      });
+    }
+    const accessToken = await this.generateAccessToken(user.id);
+    const refreshToken = await this.generateRefreshToken(user.id);
+    await this.usersService.updateRefreshToken(user.id, refreshToken);
+  
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+      },
+      accessToken,
+      refreshToken,
+    };
   }
 
   async checkEmail(email: string) {

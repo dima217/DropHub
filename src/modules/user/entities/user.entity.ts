@@ -12,9 +12,13 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ApiProperty({ description: 'User display name' })
+  @ApiProperty({ description: 'User display password' })
   @Column()
-  username: string;
+  firstName: string;
+
+  @ApiProperty({ description: 'User display password' })
+  @Column()
+  lastName: string;
 
   @ApiProperty({ description: 'User display email' })
   @Column()
@@ -23,12 +27,6 @@ export class User {
   @ApiProperty({ description: 'User display password' })
   @Column()
   password: string;
-
-  @ApiProperty({ description: 'Current account balance' })
-  @Column()
-  @IsNumber()
-  @Min(0)
-  balance: number;
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
   @IsEnum(UserRole)
@@ -57,4 +55,7 @@ export class User {
 
   @Column({ type: 'timestamp', nullable: true })
   tokenExpiredDate: Date | null;
+
+  @IsBoolean()
+  isOAuthUser: boolean;
 }
