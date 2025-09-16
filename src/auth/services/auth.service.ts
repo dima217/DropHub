@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -14,6 +15,7 @@ import { generateToken } from '../common/additional.functions';
 import { ConfigService } from '@nestjs/config';
 import { UserRole } from 'src/modules/user/entities/user.entity';
 import { RegisterUserDto } from '../dto/register.dto';
+import { Request, Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -38,8 +40,35 @@ export class AuthService {
     )
   }  
 
+  async sendAuthResponse(
+    req: Request,
+    res: Response,
+    payload: {
+      accessToken: string;
+      refreshToken: string;
+    }
+  ) {
+    const isBrowser =
+      /Mozilla|Chrome|Safari|Firefox|Edge|Opera/i.test(req.headers['user-agent'] || '') &&
+      (req.headers['accept'] || '').includes('text/html');
+
+    if (isBrowser) {
+      res.cookie('refreshToken', payload.refreshToken, {
+        httpOnly: true,
+        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 7 * 24 * 60 * 60 * 1000, 
+      });
+
+      return res.status(200).json({
+        accessToken: payload.accessToken,
+      });
+    }
+
+    return res.status(200).json(payload); 
+  }
+
   async refreshToken(token: string): Promise<{
-    user: { id: number; email: string; role: string };
     accessToken: string;
     refreshToken: string;
   }> {
@@ -54,7 +83,6 @@ export class AuthService {
     const newAccessToken = await this.generateAccessToken(user.id);
 
     return {
-      user: { id: user.id, email: user.email, role: user.role },
       accessToken: newAccessToken,
       refreshToken: token,
     };
@@ -73,37 +101,54 @@ export class AuthService {
     );
 
     if (passwordIsMatch) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...result } = findUser;
-      return result;
+      const { email } = findUser;
+      return email;
     } else {
       throw new NotFoundException('Incorrect credentials');
     }
   }
 
-  async login(user: IUser, isWeb: boolean = false) {
-    const { id, email, role } = user;
-    const accessToken = await this.generateAccessToken(id);
-    const refreshToken = await this.generateRefreshToken(id);
+  async login(email: string) {
 
-    await this.usersService.updateRefreshToken(id, refreshToken );
+    const user = await this.usersService.findByEmail(email);
 
-    if (isWeb) {
-        return {
-            id,
-            email,
-            role,
-            accessToken,
-        };
-    } else {
-        return {
-            id,
-            email,
-            role,
-            accessToken,
-            refreshToken,
-        };
+    if (!user) throw new UnauthorizedException('User not found');
+
+    const accessToken = await this.generateAccessToken(user.id);
+    const refreshToken = await this.generateRefreshToken(user.id);
+
+    await this.usersService.updateRefreshToken(user.id, refreshToken);
+
+    return {
+        accessToken,
+        refreshToken,
+    };
+  }
+
+  async registerUser(dto: { email: string; password: string; firstName: string; lastName: string }) {
+    let user = await this.usersService.findByEmail(dto.email);
+    if (user) {
+      throw new BadRequestException('User already exists');
     }
+
+    const passwordHash = await argon2.hash(dto.password);
+
+    user = await this.usersService.createUser({
+      ...dto,
+      password: passwordHash,
+      role: UserRole.USER,
+      isOAuthUser: false,
+    });
+
+    const accessToken = await this.generateAccessToken(user.id);
+    const refreshToken = await this.generateRefreshToken(user.id);
+    await this.usersService.updateRefreshToken(user.id, refreshToken);
+
+    return {
+      user: { id: user.id, email: user.email, firstName: user.firstName },
+      accessToken,
+      refreshToken,
+    };
   }
 
   async findOrCreateUser(userDto: {
@@ -126,6 +171,7 @@ export class AuthService {
         password: passwordHash!,
         role: UserRole.USER,
         avatarUrl: userDto.picture,
+        isOAuthUser: userDto.isOAuthUser,
       });
     }
     const accessToken = await this.generateAccessToken(user.id);

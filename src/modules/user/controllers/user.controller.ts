@@ -38,24 +38,6 @@ import type { JwtAuthRequest } from 'src/types/express';
 export class UserController {
   constructor(private readonly userService: UsersService) {}
 
-  //Public endpoint
-  @Post()
-  @UsePipes(new ValidationPipe())
-  @ApiOperation({ summary: 'Create a user' })
-  @ApiBody({ type: CreateUserDto })
-  @ApiResponse({
-    status: 201,
-    description: 'User successfully created',
-    type: User,
-  })
-  @ApiResponse({ status: 400, description: 'Invalid data' })
-  @ApiResponse({ status: 409, description: 'User already exists' })
-  async create(
-    @Body() createUserDto: CreateUserDto,
-  ): Promise<CreateUserResponse> {
-    return await this.userService.createUser(createUserDto);
-  }
-
   //Admin endpoint
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()

@@ -12,6 +12,9 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ type: 'uuid', unique: true, default: () => 'uuid_generate_v4()' })
+  uuid: string;
+
   @ApiProperty({ description: 'User display password' })
   @Column()
   firstName: string;

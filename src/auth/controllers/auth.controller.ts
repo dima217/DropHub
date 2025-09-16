@@ -18,10 +18,12 @@ import { RequestEmailCodeDto } from '../dto/request-email-code.dto';
 import { VerifyEmailCodeDto } from '../dto/verify-email-code.dto';
 import { VerificationService } from '../services/verification.service';
 import type { FastifyReply } from 'fastify';
-import type { AuthRequest, JwtAuthRequest, RefreshTokenRequest } from 'src/types/express';
+import type { AuthRequest, JwtAuthRequest, RefreshTokenRequest, RequestWithUser } from 'src/types/express';
 import type { Request, Response } from 'express';
 import { RefreshTokenGuard } from '../guards/refresh-token-guard';
 import { AuthGuard } from '@nestjs/passport';
+import { RegisterUserDto } from '../dto/register.dto';
+import { AuthPayloadDto } from '../dto/auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -32,12 +34,19 @@ export class AuthController {
 
   @Post('login')
   @UseGuards(LocalGuard)
-  login(@Req() req: AuthRequest) {
-    if (!req.user) {
-      throw new UnauthorizedException('User not found');
+  async login(@Req() request: RequestWithUser, @Res() response: Response) {
+    const email = request.user;
+    if (email) {
+    const payload = await this.authService.login(email);
+     return this.authService.sendAuthResponse(request, response, payload)
     }
-    return this.authService.login(req.user);
   }
+
+  @Post('register')
+  async register(@Body() registerDto: RegisterUserDto, @Req() request: Request, @Res() response: Response) {
+    const user = await this.authService.registerUser(registerDto);
+    return this.authService.sendAuthResponse(request, response, user)
+  } 
 
   @Post('refresh-token')
   @UseGuards(RefreshTokenGuard)

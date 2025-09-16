@@ -6,7 +6,7 @@ export class RegisterUserDto {
 
   @IsOptional()
   @IsString()
-  password?: string;
+  password: string;
 
   @IsString()
   @IsNotEmpty()
@@ -16,7 +16,7 @@ export class RegisterUserDto {
   @IsNotEmpty()
   lastName: string;
 
-  @IsString()
+  /* @IsString()
   @IsOptional()
-  avatarUrl?: string;
+  avatarUrl?: string; */
 }
