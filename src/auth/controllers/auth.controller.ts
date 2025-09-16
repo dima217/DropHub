@@ -6,7 +6,6 @@ import {
   Query,
   Req,
   Res,
-  UnauthorizedException,
   UseGuards,
   HttpStatus,
 } from '@nestjs/common';
@@ -18,12 +17,11 @@ import { RequestEmailCodeDto } from '../dto/request-email-code.dto';
 import { VerifyEmailCodeDto } from '../dto/verify-email-code.dto';
 import { VerificationService } from '../services/verification.service';
 import type { FastifyReply } from 'fastify';
-import type { AuthRequest, JwtAuthRequest, RefreshTokenRequest, RequestWithUser } from 'src/types/express';
+import type { JwtAuthRequest, RefreshTokenRequest, RequestWithUser } from 'src/types/express';
 import type { Request, Response } from 'express';
 import { RefreshTokenGuard } from '../guards/refresh-token-guard';
 import { AuthGuard } from '@nestjs/passport';
 import { RegisterUserDto } from '../dto/register.dto';
-import { AuthPayloadDto } from '../dto/auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -35,11 +33,9 @@ export class AuthController {
   @Post('login')
   @UseGuards(LocalGuard)
   async login(@Req() request: RequestWithUser, @Res() response: Response) {
-    const email = request.user;
-    if (email) {
-    const payload = await this.authService.login(email);
-     return this.authService.sendAuthResponse(request, response, payload)
-    }
+    const id = request.user;
+    const payload = await this.authService.login(id);
+    return this.authService.sendAuthResponse(request, response, payload)
   }
 
   @Post('register')

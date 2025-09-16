@@ -9,7 +9,7 @@ interface JwtAuthRequest extends Request {
   user: JUser;
 }
 interface RequestWithUser extends Request {
-  user: string; 
+  user: number; 
 }
 interface RefreshTokenRequest extends Request {
   refreshToken: string;

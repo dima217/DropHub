@@ -101,23 +101,17 @@ export class AuthService {
     );
 
     if (passwordIsMatch) {
-      const { email } = findUser;
-      return email;
+      return findUser.id;
     } else {
       throw new NotFoundException('Incorrect credentials');
     }
   }
 
-  async login(email: string) {
+  async login(userId: number) {
+    const accessToken = await this.generateAccessToken(userId);
+    const refreshToken = await this.generateRefreshToken(userId);
 
-    const user = await this.usersService.findByEmail(email);
-
-    if (!user) throw new UnauthorizedException('User not found');
-
-    const accessToken = await this.generateAccessToken(user.id);
-    const refreshToken = await this.generateRefreshToken(user.id);
-
-    await this.usersService.updateRefreshToken(user.id, refreshToken);
+    await this.usersService.updateRefreshToken(userId, refreshToken);
 
     return {
         accessToken,
@@ -145,7 +139,6 @@ export class AuthService {
     await this.usersService.updateRefreshToken(user.id, refreshToken);
 
     return {
-      user: { id: user.id, email: user.email, firstName: user.firstName },
       accessToken,
       refreshToken,
     };
@@ -179,11 +172,6 @@ export class AuthService {
     await this.usersService.updateRefreshToken(user.id, refreshToken);
   
     return {
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-      },
       accessToken,
       refreshToken,
     };

@@ -52,10 +52,10 @@ export class UsersService {
     }, CACHE_TTL);
   }
 
-  findByEmail(email: string): Promise<User | null> {
+  findByEmail(email: string): Promise<{id: number, password: string} | null> {
     return this.userRepository.findOne({
       where: { email },
-      select: [...USER_SELECT_FIELDS, 'password']
+      select: ['id', 'password'],
     });
   }
 
