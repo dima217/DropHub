@@ -30,10 +30,6 @@ export class FileUploadService {
     }
   }
 
-  private get s3Client() {
-    return this.s3Service.getClient();
-  }
-
   async uploadFileToS3AndSaveMetadata(params: UploadToS3Request) {
     const { file, roomId, uploaderIp } = params;
 
@@ -46,14 +42,12 @@ export class FileUploadService {
     const fileKey = `${roomId}/${randomUUID()}-${file.originalname}`;
     const fileBuffer = file.buffer;
 
-    await this.s3Client.send(
-      new PutObjectCommand({
+    await this.s3Service.uploadFile({
         Bucket: this.bucket,
         Key: fileKey,
         Body: fileBuffer,
         ContentType: file.mimetype,
-      }),
-    );
+    });
 
     const fileUploadMeta = await this.fileService.createFileMeta({
       originalName: file.originalname,

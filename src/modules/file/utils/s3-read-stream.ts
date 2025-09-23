@@ -3,35 +3,34 @@ import { Readable } from 'stream';
 import { S3Client } from '@aws-sdk/client-s3';
 import { MAX_DOWNLOAD_SIZE } from '../../../constants/interfaces';
 import { Injectable } from '@nestjs/common';
+import { S3Service } from 'src/s3/s3.service';
 
 @Injectable()
 export class S3ReadStream {
   private fileSize: number | null = null;
 
   constructor(
-    private bucket: string,
-    private key: string,
-    private s3Client: S3Client,
+    private readonly bucket: string = 'drop-hub-storage',
+    private readonly s3Service: S3Service, 
   ) {}
 
-  private async fetchFileSize() {
+  private async fetchFileSize(key: string) {
     if (this.fileSize !== null) return this.fileSize;
 
-    const head = await this.s3Client.send(
-      new HeadObjectCommand({ Bucket: this.bucket, Key: this.key }),
+    const head = await this.s3Service.client.send(
+      new HeadObjectCommand({ Bucket: this.bucket, Key: key }),
     );
 
     this.fileSize = head.ContentLength ?? 0;
     return this.fileSize;
   }
 
-  async download(): Promise<Readable | undefined> {
-    const fileSize = await this.fetchFileSize();
-    if (!fileSize) return;
+  async download(key: string): Promise<Readable> {
+    const fileSize = await this.fetchFileSize(key);
 
     if (fileSize <= MAX_DOWNLOAD_SIZE) {
-      const { Body } = await this.s3Client.send(
-        new GetObjectCommand({ Bucket: this.bucket, Key: this.key }),
+      const { Body } = await this.s3Service.client.send(
+        new GetObjectCommand({ Bucket: this.bucket, Key: key }),
       );
       return Body as Readable;
     }
@@ -47,10 +46,10 @@ export class S3ReadStream {
         }
 
         const end = Math.min(offset + chunkSize - 1, fileSize - 1);
-        const { Body } = await this.s3Client.send(
+        const { Body } = await this.s3Service.client.send(
           new GetObjectCommand({
             Bucket: this.bucket,
-            Key: this.key,
+            Key: key,
             Range: `bytes=${offset}-${end}`,
           }),
         );

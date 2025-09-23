@@ -2,8 +2,6 @@ import {
     Body,
     Controller,
     Post,
-    HttpException,
-    HttpStatus,
     Res,
   } from "@nestjs/common";
 import type { Response } from "express";
@@ -27,44 +25,23 @@ import { FilesService } from "../services/file.service";
       @Body() body: DownloadFileDto,
       @Res() res: Response
     ) {
-      try {
-        const key = body.key;
-        const fileDoc = await this.fileService.getFileByKey(key);
+      const key = body.key;
+      const fileDoc = await this.fileService.getFileByKey(key);
   
-        const mimeType = fileDoc?.mimeType || "application/octet-stream"; // fallback
+      const mimeType = fileDoc?.mimeType || "application/octet-stream"; // fallback
   
-        const stream = await this.fileDownloadService.getStream(body.key);
+      const stream = await this.fileDownloadService.getStream(body.key);
   
-        if (!stream) {
-          throw new HttpException(
-            { error: "File not found in S3" },
-            HttpStatus.NOT_FOUND
-          );
-        }
-  
-        res.setHeader("Content-Type", mimeType);
-        res.setHeader("Content-Disposition", `attachment; filename="${key}"`);
+      res.setHeader("Content-Type", mimeType);
+      res.setHeader("Content-Disposition", `attachment; filename="${key}"`);
 
-        stream.pipe(res);
-      } catch (err) {
-        throw new HttpException(
-          { error: "Could not upload file", details: err },
-          HttpStatus.INTERNAL_SERVER_ERROR
-        );
-      }
+      stream.pipe(res);
     }
   
     @Post("url")
     async downloadFileByURL(@Body() body: DownloadFileDto) {
-      try {
-        const url = this.fileDownloadService.getDownloadLink(body.key);
-        return { url };
-      } catch (err) {
-        throw new HttpException(
-          { error: "Could not upload file2", details: err },
-          HttpStatus.INTERNAL_SERVER_ERROR
-        );
-      }
+      const url = this.fileDownloadService.getDownloadLink(body.key);
+      return { url };
     }
   }
   

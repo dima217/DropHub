@@ -5,8 +5,6 @@ import {
     UploadedFile,
     UseInterceptors,
     Req,
-    HttpException,
-    HttpStatus,
   } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import type { Request } from "express";
@@ -26,63 +24,35 @@ import { UploadCompleteDto } from "../dto/upload/upload.complete.dto";
       @Body("roomId") roomId: string,
       @Req() req: Request
     ) {
-      try {
-        await this.filesUploadService.uploadFileToS3AndSaveMetadata({
-          file,
-          roomId,
-          uploaderIp: req.ip ?? 'none',
-        });
+      await this.filesUploadService.uploadFileToS3AndSaveMetadata({
+        file,
+        roomId,
+        uploaderIp: req.ip ?? 'none',
+      });
   
-        return { success: true, message: "File uploaded successfully" };
-      } catch (err) {
-        throw new HttpException(
-          { error: "Internal Server Error", details: err?.message ?? err },
-          HttpStatus.INTERNAL_SERVER_ERROR
-        );
-      }
+      return { success: true, message: "File uploaded successfully" };
     }
   
     @Post("init")
     async uploadInit(@Body() body: UploadInitDto) {
-      try {
-        const strategy = await this.filesUploadService.initUploading(
-          body.fileSize
-        );  
-        return { success: true, strategy };
-      } catch (err) {
-        throw new HttpException(
-          { error: "Could not init upload", details: err?.message ?? err },
-          HttpStatus.INTERNAL_SERVER_ERROR
-        );
-      }
+      const strategy = await this.filesUploadService.initUploading(
+        body.fileSize
+      );  
+      return { success: true, strategy };
     }
   
     @Post("multipart/init")
     async uploadMultipartInit(@Body() body: UploadInitMultipartDto, @Req() req: Request) {
-      try {
-        const initRes = await this.filesUploadService.initUploadMultipart(body, req.ip ?? 'none');
-        return { success: true, data: initRes };
-      } catch (err) {
-        throw new HttpException(
-          { error: "Could not init multipart upload", details: err?.message ?? err },
-          HttpStatus.INTERNAL_SERVER_ERROR
-        );
-      }
+      const initRes = await this.filesUploadService.initUploadMultipart(body, req.ip ?? 'none');
+      return { success: true, data: initRes };
     }
   
     @Post("multipart/complete")
     async uploadComplete(@Body() body: UploadCompleteDto, @Req() req: Request) {
-      try {
-        const ip = req.ip;
-        await this.filesUploadService.completeMultipart(body);
+      const ip = req.ip;
+      await this.filesUploadService.completeMultipart(body);
   
-        return { success: true, message: "Multipart upload completed" };
-      } catch (err) {
-        throw new HttpException(
-          { error: "Could not complete multipart upload", details: err?.message ?? err },
-          HttpStatus.INTERNAL_SERVER_ERROR
-        );
-      }
+      return { success: true, message: "Multipart upload completed" };
     }
   }
   

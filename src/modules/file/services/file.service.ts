@@ -1,12 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { File, FileDocument } from '../schemas/file.schema';
 import { Room, RoomDocument } from '../../room/schemas/room.schema';
-
-export interface DeleteFileBody {
-  files: string[];
-}
+import { CreateFileMetaDto } from '../dto/create-file-meta.dto';
+import { DeleteFileDto } from '../dto/delete-file.dto';
+import { GetFilesDto } from '../dto/get-files.dto';
 
 @Injectable()
 export class FilesService {
@@ -26,11 +25,11 @@ export class FilesService {
     return fileDoc.save();
   }
 
-  /**
-   * Marks files as expired by setting expiresAt to current date
-   */
-  async deleteFiles(params: DeleteFileBody) {
-    const fileIds = params.files;
+  async deleteFiles(dto: DeleteFileDto) {
+    if (!dto.files || dto.files.length === 0) {
+      throw new BadRequestException('No files provided');
+    }
+    const fileIds = dto.files;
 
     const updatedFiles = await Promise.all(
       fileIds.map(async (fileId) => {
@@ -52,21 +51,24 @@ export class FilesService {
     return updatedFiles.filter(Boolean);
   }
 
-  /**
-   * Returns non-expired files for a given room
-   */
-  async getFilesByRoomID(roomId: string) {
-    const room = await this.roomModel
-      .findById(roomId)
-      .populate<{ files: FileDocument[] }>('files') 
-      .exec();
-  
-    if (!room) {
-      throw new Error("Room hasn't been found");
+  async getFilesByRoomID(dto: GetFilesDto) {
+    if (!dto.roomId) {
+      throw new BadRequestException('No roomId provided');
     }
 
-    const validFiles = room.files.filter(file => !file.expiresAt || file.expiresAt > new Date());
-  
+    const room = await this.roomModel
+      .findById(dto.roomId)
+      .populate<{ files: FileDocument[] }>('files')
+      .exec();
+
+    if (!room) {
+      throw new NotFoundException("Room hasn't been found");
+    }
+
+    const validFiles = room.files.filter(
+      (file) => !file.expiresAt || file.expiresAt > new Date(),
+    );
+
     return validFiles;
   }
 

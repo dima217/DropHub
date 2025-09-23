@@ -15,14 +15,10 @@ import {
       private readonly bucket: string = 'drop-hub-storage',
     ) {}
   
-    private get s3Client() {
-      return this.s3Service.getClient();
-    }
-  
     async initMultipart(fileName: string, totalParts: number) {
       const key = `uploads/${Date.now()}_${fileName}`;
   
-      const createRes = await this.s3Client.send(
+      const createRes = await this.s3Service.client.send(
         new CreateMultipartUploadCommand({ Bucket: this.bucket, Key: key }),
       );
   
@@ -34,7 +30,7 @@ import {
           Array.from({ length: totalParts }, async (_, i) => {
             const partNumber = i + 1;
             const url = await getSignedUrl(
-              this.s3Client,
+              this.s3Service.client,
               new UploadPartCommand({
                 Bucket: this.bucket,
                 Key: key,
@@ -52,7 +48,7 @@ import {
     }
   
     async completeMultipart(key: string, uploadId: string, parts: CompletedPart[]) {
-      await this.s3Client.send(
+      await this.s3Service.client.send(
         new CompleteMultipartUploadCommand({
           Bucket: this.bucket,
           Key: key,
