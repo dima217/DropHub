@@ -58,12 +58,9 @@ import { UploadCompleteDto } from "../dto/upload/upload.complete.dto";
     }
   
     @Post("multipart/init")
-    async uploadMultipartInit(@Body() body: UploadInitMultipartDto) {
+    async uploadMultipartInit(@Body() body: UploadInitMultipartDto, @Req() req: Request) {
       try {
-        const initRes = await this.filesUploadService.initUploadMultipart(
-          body.fileName,
-          body.totalParts
-        );
+        const initRes = await this.filesUploadService.initUploadMultipart(body, req.ip ?? 'none');
         return { success: true, data: initRes };
       } catch (err) {
         throw new HttpException(
@@ -78,7 +75,7 @@ import { UploadCompleteDto } from "../dto/upload/upload.complete.dto";
     async uploadComplete(@Body() body: UploadCompleteDto, @Req() req: Request) {
       try {
         const ip = req.ip;
-        await this.filesUploadService.completeMultipart(body, ip ?? 'none');
+        await this.filesUploadService.completeMultipart(body);
   
         return { success: true, message: "Multipart upload completed" };
       } catch (err) {

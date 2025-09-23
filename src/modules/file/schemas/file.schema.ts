@@ -24,6 +24,9 @@ export class File {
   @Prop({ required: true, default: 0 })
   downloadCount: number;
 
+  @Prop({ required: true, default: 0 })
+  uploadedParts: number;
+
   @Prop()
   uploaderIp?: string;
 

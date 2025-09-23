@@ -10,6 +10,8 @@ import { S3Service } from 'src/s3/s3.service';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { UploadCompleteDto } from '../dto/upload/upload.complete.dto';
 import { UploadToS3Request } from '../interfaces/file-request.interface';
+import { UploadInitMultipartDto } from '../dto/upload/upload.init.multipart.dto';
+import { FilesService } from './file.service';
 
 @Injectable()
 export class FileUploadService {
@@ -18,6 +20,7 @@ export class FileUploadService {
   constructor(
     private readonly s3Service: S3Service,
     private readonly s3Stream: S3WriteStream,
+    private readonly fileService: FilesService,
     @InjectModel(File.name) private readonly fileModel: Model<FileDocument>,
     @InjectModel(Room.name) private readonly roomModel: Model<RoomDocument>,
   ) {
@@ -80,21 +83,13 @@ export class FileUploadService {
     return null;
   }
 
-  async initUploadMultipart(fileName: string, totalParts: number) {
-    const init = this.s3Stream.initMultipart(fileName, totalParts);
+  async initUploadMultipart(params: UploadInitMultipartDto, ip: string) {
+    const init = await this.s3Stream.initMultipart(params.fileName, params.totalParts);
     if (!init) {
       throw new BadGatewayException(
         { error: "Init multipart failed" },
       );
     }
-  }
-
-  async completeMultipart(
-    params: UploadCompleteDto,
-    ip: string,
-  ) {
-    await this.s3Stream.completeMultipart(params.key, params.uploadId, params.parts);
-
     const fileUploadMeta = new this.fileModel({
       originalName: params.fileName,
       storedName: params.key,
@@ -104,27 +99,48 @@ export class FileUploadService {
       downloadCount: 0,
       uploaderIp: ip,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-    });
-
-    await this.roomModel.findByIdAndUpdate(params.roomId, {
-      $push: { files: fileUploadMeta._id },
-      $set: { 'uploadSession.status': 'complete' },
+      uploadSession: {
+        uploadId: init.uploadId,    
+        status: 'in_progress',
+        uploadedParts: [],
+      },
     });
 
     await fileUploadMeta.save();
+    return { uploadId: init.uploadId, key: init.key, fileId: fileUploadMeta._id };
+  }
+
+  async completeMultipart(
+    params: UploadCompleteDto,
+  ) {
+    await this.s3Stream.completeMultipart(params.key, params.uploadId, params.parts);
+
+    const file = await this.fileService.getFileByKey(params.key);
+
+    await this.roomModel.findByIdAndUpdate(params.roomId, {
+      $push: { files: file._id },
+      $set: { 'uploadSession.status': 'complete' },
+    });
   }
 
   async cancelUpload(roomId: string, uploadId: string) { // cancel uploading
-    await this.roomModel.findOneAndUpdate(
+    await this.fileModel.findOneAndUpdate(
       { _id: roomId, 'uploadSession.uploadId': uploadId },
       { $set: { 'uploadSession.status': 'canceled' } },
     );
   }
 
-  async stopUpload(roomId: string, uploadId: string) {  // stop uploading
-    await this.roomModel.findOneAndUpdate(
+  async stopUpload(  // stop uploading
+    roomId: string, 
+    uploadId: string, 
+    uploadedParts: number[],
+  ) { 
+    await this.fileModel.findOneAndUpdate(
       { _id: roomId, 'uploadSession.uploadId': uploadId },
-      { $set: { 'uploadSession.status': 'stopped' } },
+      { $set: { 
+        'uploadSession.status': 'stopped',
+        'uploadSession.uploadedParts': uploadedParts, 
+      } },
     );
   }
 }
