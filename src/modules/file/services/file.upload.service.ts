@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadGatewayException, BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { randomUUID } from 'crypto';
@@ -34,6 +34,12 @@ export class FileUploadService {
   async uploadFileToS3AndSaveMetadata(params: UploadToS3Request) {
     const { file, roomId, uploaderIp } = params;
 
+    if (!file || !roomId) {
+      throw new BadRequestException(
+        { error: "Missing 'file' or 'roomId'" },
+      );
+    }
+
     const fileKey = `${roomId}/${randomUUID()}-${file.originalname}`;
     const fileBuffer = file.buffer;
 
@@ -54,7 +60,7 @@ export class FileUploadService {
       uploadTime: new Date(),
       downloadCount: 0,
       uploaderIp,
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24ч
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
     });
 
     await this.roomModel.findByIdAndUpdate(roomId, {
@@ -65,13 +71,22 @@ export class FileUploadService {
   }
 
   async initUploading(fileSize: number) {
-    if (fileSize >= MAX_UPLOAD_SIZE) return UPLOAD_STRATEGY.MULTIPART;
-    if (fileSize <= MAX_UPLOAD_SIZE) return UPLOAD_STRATEGY.SINGLE;
+    if (!fileSize) {
+      throw new BadRequestException('Filesize is undefined')
+    } 
+    if (fileSize > 0) {
+      return fileSize >= MAX_UPLOAD_SIZE ? UPLOAD_STRATEGY.MULTIPART : UPLOAD_STRATEGY.SINGLE;
+    }
     return null;
   }
 
   async initUploadMultipart(fileName: string, totalParts: number) {
-    return this.s3Stream.initMultipart(fileName, totalParts);
+    const init = this.s3Stream.initMultipart(fileName, totalParts);
+    if (!init) {
+      throw new BadGatewayException(
+        { error: "Init multipart failed" },
+      );
+    }
   }
 
   async completeMultipart(

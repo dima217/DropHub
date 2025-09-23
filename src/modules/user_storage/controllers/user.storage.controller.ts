@@ -8,7 +8,7 @@ export class UserStorageController {
         private readonly userStorageService: UserStorageService,
     ) {}
 
-    @Post("files")
+    /* @Post("files")
     async addFiles(@Body() body: ModifyFilesDto) {
       const { userId, keys } = body;
       return this.userStorageService.addFiles(userId, keys);
@@ -18,7 +18,7 @@ export class UserStorageController {
     async removeFiles(@Body() body: ModifyFilesDto) {
       const { userId, keys } = body;
       return this.userStorageService.removeFiles(userId, keys);
-    }
+    } */
   
     @Post("get") 
     async getUserStorage(@Body() body: { userId: string }) {

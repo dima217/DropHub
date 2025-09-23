@@ -12,10 +12,12 @@ import { FileDownloadService } from '../services/file.download.service';
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { DownloadFileDto } from "../dto/download/download.file.dto";
+import { FilesService } from "../services/file.service";
   
   @Controller("/download")
   export class FileDownloadController {
     constructor(
+        private readonly fileService: FilesService,
         private readonly fileDownloadService: FileDownloadService,
         @InjectModel(File.name) private readonly fileModel: Model<FileDocument>
     ) {}
@@ -27,17 +29,9 @@ import { DownloadFileDto } from "../dto/download/download.file.dto";
     ) {
       try {
         const key = body.key;
-        const fileDoc = await this.fileModel.findOne({ key }).lean();
+        const fileDoc = await this.fileService.getFileByKey(key);
   
-        if (!fileDoc) {
-          throw new HttpException(
-            { error: "File doc does not exist" },
-            HttpStatus.NOT_FOUND
-          );
-        }
-  
-        const mimeType =
-          fileDoc?.mimeType || "application/octet-stream"; // fallback
+        const mimeType = fileDoc?.mimeType || "application/octet-stream"; // fallback
   
         const stream = await this.fileDownloadService.getStream(body.key);
   

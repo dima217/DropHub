@@ -20,26 +20,17 @@ import { UploadCompleteDto } from "../dto/upload/upload.complete.dto";
     constructor(private readonly filesUploadService: FileUploadService) {}
   
     @Post()
-    @UseInterceptors(FileInterceptor("file"))
+    @UseInterceptors(FileInterceptor('file'))
     async uploadFile(
       @UploadedFile() file: Express.Multer.File,
       @Body("roomId") roomId: string,
       @Req() req: Request
     ) {
       try {
-        const ip = req.ip;
-  
-        if (!file || !roomId) {
-          throw new HttpException(
-            { error: "Missing 'file' or 'roomId'" },
-            HttpStatus.BAD_REQUEST
-          );
-        }
-  
         await this.filesUploadService.uploadFileToS3AndSaveMetadata({
           file,
           roomId,
-          uploaderIp: ip ?? 'none',
+          uploaderIp: req.ip ?? 'none',
         });
   
         return { success: true, message: "File uploaded successfully" };
@@ -56,15 +47,7 @@ import { UploadCompleteDto } from "../dto/upload/upload.complete.dto";
       try {
         const strategy = await this.filesUploadService.initUploading(
           body.fileSize
-        );
-  
-        if (!strategy) {
-          throw new HttpException(
-            { error: "No strategy returned" },
-            HttpStatus.BAD_REQUEST
-          );
-        }
-  
+        );  
         return { success: true, strategy };
       } catch (err) {
         throw new HttpException(
@@ -81,14 +64,6 @@ import { UploadCompleteDto } from "../dto/upload/upload.complete.dto";
           body.fileName,
           body.totalParts
         );
-  
-        if (!initRes) {
-          throw new HttpException(
-            { error: "Init multipart failed" },
-            HttpStatus.BAD_REQUEST
-          );
-        }
-  
         return { success: true, data: initRes };
       } catch (err) {
         throw new HttpException(

@@ -9,25 +9,11 @@ export class UserStorageService {
         @InjectModel("UserStorage") private readonly userStorageModel: Model<UserStorageDocument>
     ) {}
 
-    async addFiles(userId: string, keys: string[]) {
-        const storage = await this.userStorageModel.findOneAndUpdate(
-          { userId },
-          { $addToSet: { files: { $each: keys } } },
-          { upsert: true, new: true }
-        );
-    
-        return storage;
+    async addItem(userId: string) {
+        
     }
     
-    async removeFiles(userId: string, keys: string[]) {
-        const storage = await this.userStorageModel.findOneAndUpdate(
-          { userId },
-          { $pull: { files: { $in: keys } } },
-          { new: true }
-        );
     
-        return storage;
-    }
     
     async getUserStorage(userId: string) {
         const storage = await this.userStorageModel.findOne({ userId }).populate("files");

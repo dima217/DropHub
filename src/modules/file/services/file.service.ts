@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { File, FileDocument } from '../schemas/file.schema';
@@ -58,4 +58,18 @@ export class FilesService {
   
     return validFiles;
   }
+
+  async getFileByKey(key: string) {
+    const fileDoc = await this.fileModel.findOne({ key }).lean();
+    
+    if (!fileDoc) {
+      throw new NotFoundException(
+        { error: "File doc does not exist" },
+      );
+    }
+
+    return fileDoc;
+  }
 }
+
+
