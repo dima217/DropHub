@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { FileUploadStatus } from '../../../constants/interfaces';
+import { FileUploadStatus } from '../../../constants/interfaces.js';
 
 export type RoomDocument = Room & Document;
 
