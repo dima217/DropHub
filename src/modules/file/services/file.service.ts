@@ -15,6 +15,17 @@ export class FilesService {
     @InjectModel(Room.name) private readonly roomModel: Model<RoomDocument>,
   ) {}
 
+  async createFileMeta(dto: CreateFileMetaDto) {
+    const fileDoc = new this.fileModel({
+      ...dto,
+      uploadTime: new Date(),
+      downloadCount: 0,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
+    });
+
+    return fileDoc.save();
+  }
+
   /**
    * Marks files as expired by setting expiresAt to current date
    */

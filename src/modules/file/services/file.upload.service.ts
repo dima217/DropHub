@@ -55,22 +55,17 @@ export class FileUploadService {
       }),
     );
 
-    const fileUploadMeta = new this.fileModel({
+    const fileUploadMeta = await this.fileService.createFileMeta({
       originalName: file.originalname,
       storedName: fileKey,
       size: fileBuffer.length,
       mimeType: file.mimetype,
-      uploadTime: new Date(),
-      downloadCount: 0,
       uploaderIp,
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
     });
 
     await this.roomModel.findByIdAndUpdate(roomId, {
       $push: { files: fileUploadMeta._id },
     });
-
-    await fileUploadMeta.save();
   }
 
   async initUploading(fileSize: number) {
@@ -90,15 +85,12 @@ export class FileUploadService {
         { error: "Init multipart failed" },
       );
     }
-    const fileUploadMeta = new this.fileModel({
+    const fileUploadMeta = await this.fileService.createFileMeta({
       originalName: params.fileName,
       storedName: params.key,
       size: params.fileSize,
       mimeType: params.fileType,
-      uploadTime: new Date(),
-      downloadCount: 0,
       uploaderIp: ip,
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       uploadSession: {
         uploadId: init.uploadId,    
         status: 'in_progress',
@@ -106,7 +98,6 @@ export class FileUploadService {
       },
     });
 
-    await fileUploadMeta.save();
     return { uploadId: init.uploadId, key: init.key, fileId: fileUploadMeta._id };
   }
 
