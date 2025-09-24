@@ -9,21 +9,23 @@ import { AuthPayloadDto } from '../dto/auth.dto';
 import { UsersService } from '../../modules/user/services/user.service';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
-import { IUser } from '../types/types';
 import { MailService } from './mail.service';
 import { generateToken } from '../common/additional.functions';
 import { ConfigService } from '@nestjs/config';
-import { UserRole } from 'src/modules/user/entities/user.entity';
-import { RegisterUserDto } from '../dto/register.dto';
+import { User, UserRole } from 'src/modules/user/entities/user.entity';
 import { Request, Response } from 'express';
+import { DataSource } from 'typeorm';
+import { ProfileService } from 'src/modules/user/services/profile.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
+    private readonly profileService: ProfileService,
     private jwtService: JwtService,
     private mailService: MailService,
     private readonly configService: ConfigService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async generateAccessToken(userId: number) {
@@ -120,19 +122,13 @@ export class AuthService {
   }
 
   async registerUser(dto: { email: string; password: string; firstName: string; lastName: string }) {
-    let user = await this.usersService.findByEmail(dto.email);
-    if (user) {
-      throw new BadRequestException('User already exists');
-    }
-
-    const passwordHash = await argon2.hash(dto.password);
-
-    user = await this.usersService.createUser({
+    const userData = {
       ...dto,
-      password: passwordHash,
-      role: UserRole.USER,
-      isOAuthUser: false,
-    });
+      password: dto.password,
+      role: UserRole.USER,      
+      isOAuthUser: false,       
+    };
+    const user = await this.createUserWithProfile(userData)
 
     const accessToken = await this.generateAccessToken(user.id);
     const refreshToken = await this.generateRefreshToken(user.id);
@@ -176,6 +172,41 @@ export class AuthService {
       refreshToken,
     };
   }
+
+  private async createUserWithProfile(params: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    role: UserRole;
+    isOAuthUser: boolean;
+  }): Promise<User> {
+    const existingUser = await this.usersService.findByEmail(params.email);
+    if (existingUser) throw new BadRequestException('User already exists');
+
+    return this.dataSource.transaction(async (manager) => {
+      const profile = await this.profileService.createProfileTransactional(
+        {
+          firstName: params.firstName,
+          lastName: params.lastName,
+          avatarUrl: null,
+        },
+        manager,
+      );
+
+      return this.usersService.createUserTransactional(
+        {
+          email: params.email,
+          password: params.password ? await argon2.hash(params.password) : undefined,
+          role: params.role,
+          isOAuthUser: params.isOAuthUser,
+          profile,
+        },
+        manager,
+      );
+    });
+  }
+
 
   async checkEmail(email: string) {
     const emailMod = email?.trim();

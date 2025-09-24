@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import * as argon2 from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { CacheService } from 'src/cache/cache.service';
@@ -15,9 +15,10 @@ import { UpdateUserResetDto } from '../dto/update-user-reset.dto';
 import { ImageService } from 'src/modules/images/image.service';
 import { UserUpdateProfileDTO } from '../dto/update-profile.dto';
 import { CreateUserDto } from '../dto/create-user.dto';
+import { ProfileService } from './profile.service';
 
 const CACHE_TTL = 300;
-const USER_SELECT_FIELDS = ['id', 'email', 'firstName', 'role', 'avatarUrl'] as const;
+const USER_SELECT_FIELDS = ['id', 'email', 'role'] as const;
 
 @Injectable()
 export class UsersService {
@@ -26,7 +27,7 @@ export class UsersService {
     private userRepository: Repository<User>,
     private readonly cacheService: CacheService,
     private readonly jwtService: JwtService,
-    private readonly imageService: ImageService,
+    private readonly profileService: ProfileService,
   ) {}
 
   async findAllPaginated(page: number, limit: number): Promise<[User[], number]> {
@@ -76,6 +77,14 @@ export class UsersService {
     return this.userRepository.save(user);
   }
 
+  async createUserTransactional(
+    data: Partial<User>,
+    manager: EntityManager
+  ): Promise<User> {
+    const user = manager.create(User, data);
+    return manager.save(user);
+  }
+
   async updateUser(id: number, dto: UpdateUserDto): Promise<User> {
     const user = await this.userRepository.findOneBy({ id });
     
@@ -91,24 +100,13 @@ export class UsersService {
     return updatedUser;
   }
 
-  async updateUserProfile(id: number, userUpdateProfileDTO: UserUpdateProfileDTO): Promise<User> {
+  async updateUserProfile(id: number, dto: UserUpdateProfileDTO): Promise<User> {
     const user = await this.userRepository.findOneBy({ id });
   
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
-  
-    const isAvatarChanged = userUpdateProfileDTO.avatarUrl && userUpdateProfileDTO.avatarUrl !== user.avatarUrl;
-  
-    if (isAvatarChanged && user.avatarUrl) {
-      await this.imageService.deleteFileFromStorage(user.avatarUrl);
-    }
-  
-    if (userUpdateProfileDTO.username)
-    user.firstName = userUpdateProfileDTO.username;
-    if (userUpdateProfileDTO.avatarUrl) {
-      user.avatarUrl = userUpdateProfileDTO.avatarUrl;
-    }
+    await this.profileService.updateProfile(user.profile, dto);
     const savedUser = await this.userRepository.save(user);
   
     await this.cacheService.deleteByPattern(`user:${id}`);
