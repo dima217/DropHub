@@ -128,7 +128,11 @@ export class AuthService {
       role: UserRole.USER,      
       isOAuthUser: false,       
     };
-    const user = await this.createUserWithProfile(userData)
+
+    const existingUser = await this.usersService.findByEmail(dto.email);
+    if (existingUser) throw new BadRequestException('User already exists');
+
+    const user = await this.createUserWithProfile(userData);
 
     const accessToken = await this.generateAccessToken(user.id);
     const refreshToken = await this.generateRefreshToken(user.id);
@@ -140,29 +144,19 @@ export class AuthService {
     };
   }
 
-  async findOrCreateUser(userDto: {
+  async findOrCreateUser(dto: {
     email: string;
-    password?: string;
     firstName: string;
     lastName: string;
     picture?: string;
-    isOAuthUser: boolean;
   }) {
-    let user = await this.usersService.findByEmail(userDto.email);
-  
-    if (!user) {
-      const passwordHash = userDto.password
-        ? await argon2.hash(userDto.password)
-        : null;
-  
-      user = await this.usersService.createUser({
-        ...userDto,
-        password: passwordHash!,
-        role: UserRole.USER,
-        avatarUrl: userDto.picture,
-        isOAuthUser: userDto.isOAuthUser,
-      });
-    }
+    const userData = {
+      ...dto,
+      role: UserRole.USER,
+      isOAuthUser: true,
+    };
+    const user = await this.createUserWithProfile(userData);
+
     const accessToken = await this.generateAccessToken(user.id);
     const refreshToken = await this.generateRefreshToken(user.id);
     await this.usersService.updateRefreshToken(user.id, refreshToken);
@@ -175,15 +169,12 @@ export class AuthService {
 
   private async createUserWithProfile(params: {
     email: string;
-    password: string;
+    password?: string;
     firstName: string;
     lastName: string;
     role: UserRole;
     isOAuthUser: boolean;
   }): Promise<User> {
-    const existingUser = await this.usersService.findByEmail(params.email);
-    if (existingUser) throw new BadRequestException('User already exists');
-
     return this.dataSource.transaction(async (manager) => {
       const profile = await this.profileService.createProfileTransactional(
         {
@@ -206,7 +197,6 @@ export class AuthService {
       );
     });
   }
-
 
   async checkEmail(email: string) {
     const emailMod = email?.trim();

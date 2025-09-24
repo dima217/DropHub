@@ -22,15 +22,6 @@ export class ProfileService {
     return manager.save(profile);
   }
 
-
-  async createDefaultProfile(): Promise<Profile> {
-    const profile = this.profileRepository.create({
-      avatarUrl: null,
-    });
-    return this.profileRepository.save(profile);
-  }
-
-
   async updateProfile(profile: Profile, dto: UserUpdateProfileDTO): Promise<Profile> {
     if (dto.avatarUrl && profile.avatarUrl && dto.avatarUrl !== profile.avatarUrl) {
       await this.imageService.deleteFileFromStorage(profile.avatarUrl);

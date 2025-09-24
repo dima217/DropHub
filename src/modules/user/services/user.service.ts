@@ -1,5 +1,4 @@
 import {
-  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -8,13 +7,10 @@ import { EntityManager, Repository } from 'typeorm';
 import * as argon2 from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { CacheService } from 'src/cache/cache.service';
-import { User, UserRole } from '../entities/user.entity';
+import { User } from '../entities/user.entity';
 import { UpdateUserDto } from '../dto/update-user.dto';
-import { CreateUserResponse } from '../types/createUserResponse';
 import { UpdateUserResetDto } from '../dto/update-user-reset.dto';
-import { ImageService } from 'src/modules/images/image.service';
 import { UserUpdateProfileDTO } from '../dto/update-profile.dto';
-import { CreateUserDto } from '../dto/create-user.dto';
 import { ProfileService } from './profile.service';
 
 const CACHE_TTL = 300;
@@ -26,7 +22,6 @@ export class UsersService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private readonly cacheService: CacheService,
-    private readonly jwtService: JwtService,
     private readonly profileService: ProfileService,
   ) {}
 
@@ -53,28 +48,11 @@ export class UsersService {
     }, CACHE_TTL);
   }
 
-  findByEmail(email: string): Promise<{id: number, password: string} | null> {
+  async findByEmail(email: string): Promise<{id: number, password: string} | null> {
     return this.userRepository.findOne({
       where: { email },
       select: ['id', 'password'],
     });
-  }
-
-  async createUser(createUserDto: CreateUserDto): Promise<User> {
-    const existingUser = await this.userRepository.findOne({
-      where: { email: createUserDto.email },
-    });
-
-    if (existingUser) {
-      throw new ConflictException('User already exists');
-    }
-
-    const user = this.userRepository.create({
-      ...createUserDto,
-      password: await argon2.hash(createUserDto.password),
-    });
-
-    return this.userRepository.save(user);
   }
 
   async createUserTransactional(
