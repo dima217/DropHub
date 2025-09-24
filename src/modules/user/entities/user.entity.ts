@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { IsBoolean, IsEnum, IsNumber, Min } from 'class-validator';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { IsBoolean, IsEnum } from 'class-validator';
+import { Profile } from './profile.entity';
 
 export enum UserRole {
   USER = 'user',
@@ -11,17 +12,6 @@ export class User {
   @ApiProperty({ description: 'Unique user identifier' })
   @PrimaryGeneratedColumn()
   id: number;
-
-  @Column({ type: 'uuid', unique: true, default: () => 'uuid_generate_v4()' })
-  uuid: string;
-
-  @ApiProperty({ description: 'User display password' })
-  @Column()
-  firstName: string;
-
-  @ApiProperty({ description: 'User display password' })
-  @Column()
-  lastName: string;
 
   @ApiProperty({ description: 'User display email' })
   @Column()
@@ -34,9 +24,6 @@ export class User {
   @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
   @IsEnum(UserRole)
   role: UserRole;
-
-  @Column({ type: 'varchar', nullable: true })
-  avatarUrl: string | null;
 
   @ApiProperty({
     description: 'Is user banned',
@@ -61,4 +48,8 @@ export class User {
 
   @IsBoolean()
   isOAuthUser: boolean;
+
+  @OneToOne(() => Profile, { cascade: true })
+  @JoinColumn()
+  profile: Profile;
 }
