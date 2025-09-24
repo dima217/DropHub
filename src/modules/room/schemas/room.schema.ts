@@ -15,6 +15,12 @@ export class Room {
   @Prop({ required: true, default: () => new Date() })
   createdAt: Date;
 
+  @Prop({ type: [String], default: [] })
+  participants: string[]; 
+
+  @Prop({ type: String, required: true })
+  ownerId: string;
+
   @Prop({
     type: Date,
     default: undefined,
