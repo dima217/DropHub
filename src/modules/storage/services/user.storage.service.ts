@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { UserStorageDocument } from "../schemas/user.storage.schema";
+import { UserStorageDocument } from "../schemas/storage.schema";
 import { Model } from "mongoose";
 
 @Injectable()
@@ -12,8 +12,6 @@ export class UserStorageService {
     async addItem(userId: string) {
         
     }
-    
-    
     
     async getUserStorage(userId: string) {
         const storage = await this.userStorageModel.findOne({ userId }).populate("files");

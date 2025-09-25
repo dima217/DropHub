@@ -13,7 +13,6 @@ export class ProfileService {
     private readonly imageService: ImageService,
   ) {}
 
-
   async createProfileTransactional(
     data: Partial<Profile>,
     manager: EntityManager

@@ -1,6 +1,5 @@
-import { Body, Controller, Delete, Post } from "@nestjs/common";
+import { Body, Controller, Post } from "@nestjs/common";
 import { UserStorageService } from '../services/user.storage.service';
-import { ModifyFilesDto } from "../dto/mofify.files.dto";
 
 @Controller()
 export class UserStorageController {
