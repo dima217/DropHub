@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { StoragePermission } from "../entities/storage.permission";
+import { PermissionData } from "../interfaces/user.storage-request.interface";
 
 @Injectable()
 export class StoragePermissionService {
@@ -10,7 +11,7 @@ export class StoragePermissionService {
         private permissionsRepository: Repository<StoragePermission>,
     ) {}
 
-    async createPermission(data: { userId: number, role: 'read' | 'write' | 'admin', storageId: string}) {
+    async createPermission(data: PermissionData) {
         const permission = this.permissionsRepository.create({
             storageId: data.storageId,
             user: { id: data.userId },

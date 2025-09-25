@@ -1,5 +1,6 @@
 import { User } from "src/modules/user/entities/user.entity";
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { StorageRole } from "../interfaces/user.storage-request.interface";
 
 @Entity()
 export class StoragePermission {
@@ -14,8 +15,8 @@ export class StoragePermission {
 
   @Column({
     type: 'enum',
-    enum: ['read', 'write', 'admin'],
+    enum: StorageRole,
     default: 'read'
   })
-  role: 'read' | 'write' | 'admin';
+  role: StorageRole;
 }

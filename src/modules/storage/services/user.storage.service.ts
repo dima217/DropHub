@@ -5,6 +5,7 @@ import { Model } from "mongoose";
 import { InjectRepository } from "@nestjs/typeorm";
 import { StoragePermission } from "../entities/storage.permission";
 import { StoragePermissionService } from "./storage.permission.service";
+import { StorageRole } from '../interfaces/user.storage-request.interface';
 
 @Injectable()
 export class UserStorageService {
@@ -15,12 +16,15 @@ export class UserStorageService {
     ) {}
 
     async createStorage(userId: number) {
-        const role = 'admin';
         const storage = await this.storageModel.create({
             createdAt: Date.now(),
         });
         const storageId = storage._id.toString();
-        await this.permissionsService.createPermission({userId, role, storageId});
+        await this.permissionsService.createPermission({ 
+          userId, 
+          role: StorageRole.ADMIN, 
+          storageId 
+        });
         storage.save();
     }
 
