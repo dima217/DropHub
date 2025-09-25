@@ -18,7 +18,4 @@ export class Profile {
 
   @Column({ type: 'varchar', nullable: true })
   avatarUrl: string | null;
-
-  @Column('simple-array', { nullable: true })
-  personalStorageIds: string[];
 }

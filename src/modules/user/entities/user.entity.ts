@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { IsBoolean, IsEnum } from 'class-validator';
 import { Profile } from './profile.entity';
-import { PersonalStoragePermission } from 'src/modules/storage/entities/storage.permission';
+import { StoragePermission } from 'src/modules/storage/entities/storage.permission';
 
 export enum UserRole {
   USER = 'user',
@@ -13,6 +13,9 @@ export class User {
   @ApiProperty({ description: 'Unique user identifier' })
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ type: 'uuid', default: () => 'uuid_generate_v4()' })
+  uuid: string;
 
   @ApiProperty({ description: 'User display email' })
   @Column()
@@ -54,7 +57,7 @@ export class User {
   @JoinColumn()
   profile: Profile;
 
-  @OneToMany(() => PersonalStoragePermission, (perm) => perm.user, { cascade: true })
+  @OneToMany(() => StoragePermission, (perm) => perm, { cascade: true })
   @JoinColumn()
-  permissions: PersonalStoragePermission;
+  permissions: StoragePermission;
 }

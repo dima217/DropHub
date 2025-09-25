@@ -1,7 +1,7 @@
 import { Body, Controller, Post } from "@nestjs/common";
 import { UserStorageService } from '../services/user.storage.service';
 
-@Controller()
+@Controller('storage')
 export class UserStorageController {
     constructor(
         private readonly userStorageService: UserStorageService,
@@ -19,8 +19,8 @@ export class UserStorageController {
       return this.userStorageService.removeFiles(userId, keys);
     } */
   
-    @Post("get") 
-    async getUserStorage(@Body() body: { userId: string }) {
-      return this.userStorageService.getUserStorage(body.userId);
+    @Post() 
+    async getUserStorage(@Body() body: { userId: number }) {
+      return this.userStorageService.getUserStorages(body.userId);
     }
 }

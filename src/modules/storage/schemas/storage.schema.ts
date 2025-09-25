@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { UserStorageItem } from './storage.item.schema';
 
-export type UserStorageDocument = UserStorage & Document;
+export type UserStorageDocument = UserStorage & Document<Types.ObjectId>;
 
 @Schema({ collection: 'user_storage', timestamps: true })
 export class UserStorage {

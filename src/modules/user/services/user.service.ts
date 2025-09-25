@@ -14,7 +14,7 @@ import { UserUpdateProfileDTO } from '../dto/update-profile.dto';
 import { ProfileService } from './profile.service';
 
 const CACHE_TTL = 300;
-const USER_SELECT_FIELDS = ['id', 'email', 'role'] as const;
+const USER_SELECT_FIELDS = ['id', 'email', 'profile'] as const;
 
 @Injectable()
 export class UsersService {
@@ -48,11 +48,18 @@ export class UsersService {
     }, CACHE_TTL);
   }
 
-  async findByEmail(email: string): Promise<{id: number, password: string} | null> {
+  async findByEmail(email: string): Promise<{ id: number, password: string }  | null> {
     return this.userRepository.findOne({
       where: { email },
       select: ['id', 'password'],
     });
+  }
+
+  async findByUuid(uuid: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { uuid },
+      select: [...USER_SELECT_FIELDS]
+    })
   }
 
   async createUserTransactional(
