@@ -4,23 +4,28 @@ import { UserStorageDocument } from "../schemas/storage.schema";
 import { Model } from "mongoose";
 import { InjectRepository } from "@nestjs/typeorm";
 import { StoragePermission } from "../entities/storage.permission";
-import { Repository } from "typeorm";
+import { StoragePermissionService } from "./storage.permission.service";
 
 @Injectable()
 export class UserStorageService {
     constructor(
         @InjectModel("UserStorage") private readonly storageModel: Model<UserStorageDocument>,
         @InjectRepository(StoragePermission)
-        private permissionsRepository: Repository<StoragePermission>,
+        private readonly permissionsService: StoragePermissionService,
     ) {}
 
-    async getUserStorages(userId: number) {
-        const permissions = await this.permissionsRepository.find({
-          where: { user: { id: userId } },
-          select: ['storageId', 'role'],
+    async createStorage(userId: number) {
+        const role = 'admin';
+        const storage = await this.storageModel.create({
+            createdAt: Date.now(),
         });
-      
-        if (!permissions.length) return [];
+        const storageId = storage._id.toString();
+        await this.permissionsService.createPermission({userId, role, storageId});
+        storage.save();
+    }
+
+    async getStoragesByUserId(userId: number) {
+        const permissions = await this.permissionsService.getPermissionsByUserId(userId);
       
         const storageIds = permissions.map((p) => p.storageId);
       

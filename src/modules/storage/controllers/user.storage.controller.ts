@@ -21,6 +21,6 @@ export class UserStorageController {
   
     @Post() 
     async getUserStorage(@Body() body: { userId: number }) {
-      return this.userStorageService.getUserStorages(body.userId);
+      return this.userStorageService.getStoragesByUserId(body.userId);
     }
 }
