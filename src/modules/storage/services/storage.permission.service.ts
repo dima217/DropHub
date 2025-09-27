@@ -32,7 +32,7 @@ export class StoragePermissionService {
         return permissions;
     }
 
-    async removePermissionsByUserId(userId: number, storageId: string) {
+    async removePermissionsByStorageId(userId: number, storageId: string) {
         await this.permissionsRepository.delete({
             user: { id: userId },
             storageId,

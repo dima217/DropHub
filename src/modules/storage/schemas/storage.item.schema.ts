@@ -1,8 +1,8 @@
-import { Prop, Schema } from "@nestjs/mongoose";
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Types } from "mongoose";
 
-@Schema({ collection: 'user_storage', timestamps: true })
-export class UserStorageItem {
+@Schema({ collection: 'StorageItem', timestamps: true })
+export class StorageItem {
   @Prop({ type: String })
   userId: string;
 
@@ -18,3 +18,5 @@ export class UserStorageItem {
   @Prop({ type: Types.ObjectId, ref: 'SharedFile', default: null })
   fileId?: Types.ObjectId; 
 }
+
+export const StorageItemSchema = SchemaFactory.createForClass(StorageItem);

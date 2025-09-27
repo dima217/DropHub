@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { UserStorageDocument } from "../schemas/storage.schema";
 import { Model } from "mongoose";
@@ -29,7 +29,7 @@ export class UserStorageService {
     }
 
     async addItem(userId: number) {
-      
+        
     }
 
     async getStoragesByUserId(userId: number) {
@@ -45,5 +45,36 @@ export class UserStorageService {
           ...s.toObject(),
           role: permissions.find((p) => p.storageId === s._id.toString())?.role,
         }));
+    }
+
+    async addItem(userId: number, storageId: string, file: Express.Multer.File, meta?: Record<string, any>) {
+      await this.verifyUserAccess(userId, storageId, [StorageRole.ADMIN, StorageRole.WRITE]);
+  
+      if (!file) throw new BadRequestException("File is required");
+  
+      const uploaded = await this.filesService.uploadFile(file);
+  
+      const item = await this.itemModel.create({
+        storageId,
+        fileId: uploaded.id,
+        meta: meta || {},
+        createdAt: new Date(),
+        createdBy: userId,
+      });
+  
+      return item;
+    }
+
+    async verifyUserAccess(userId: number, storageId: string, requiredRoles: StorageRole[]) {
+      const permissions = await this.permissionsService.getPermissionsByUserId(userId);
+  
+      const permission = permissions.find(p => p.storageId === storageId);
+      if (!permission) throw new NotFoundException("Storage not found or no permission.");
+  
+      if (!requiredRoles.includes(permission.role)) {
+        throw new ForbiddenException("You do not have access to perform this action.");
+      }
+  
+      return true;
     }
 }      

@@ -1,13 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { UserStorageItem } from './storage.item.schema';
+import { StorageItem } from './storage.item.schema';
 
 export type UserStorageDocument = UserStorage & Document<Types.ObjectId>;
 
 @Schema({ collection: 'user_storage', timestamps: true })
 export class UserStorage {
-  @Prop({ type: [UserStorageItem], default: [] })
-  items: UserStorageItem[]; 
+  @Prop({ type: [StorageItem], default: [] })
+  items: StorageItem[]; 
 
   @Prop({ type: Date, default: () => new Date() })
   createdAt: Date;
