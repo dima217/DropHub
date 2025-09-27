@@ -9,15 +9,11 @@ export class FileCleanUpProcessor extends WorkerHost {
     super();
   }
 
-  private get s3Client() {
-    return this.s3Service.getClient();
-  }
-
   async process(job: Job<{ storedName: string }>): Promise<void> {
     const { storedName } = job.data;
 
     try {
-      await this.s3Client.send(
+      await this.s3Service.client.send(
         new DeleteObjectCommand({
           Bucket: process.env.AWS_S3_BUCKET as string,
           Key: storedName,

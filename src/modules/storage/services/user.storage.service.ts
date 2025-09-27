@@ -28,6 +28,10 @@ export class UserStorageService {
         storage.save();
     }
 
+    async addItem(userId: number) {
+      
+    }
+
     async getStoragesByUserId(userId: number) {
         const permissions = await this.permissionsService.getPermissionsByUserId(userId);
       
