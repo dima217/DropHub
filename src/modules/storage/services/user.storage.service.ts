@@ -6,13 +6,15 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { StoragePermission } from "../entities/storage.permission";
 import { StoragePermissionService } from "./storage.permission.service";
 import { StorageRole } from '../interfaces/user.storage-request.interface';
+import { StorageItemService } from "./storage.item.service";
 
 @Injectable()
-export class UserStorageService {
+export class StorageService {
     constructor(
         @InjectModel("UserStorage") private readonly storageModel: Model<UserStorageDocument>,
         @InjectRepository(StoragePermission)
         private readonly permissionsService: StoragePermissionService,
+        private readonly storageItemService: StorageItemService,
     ) {}
 
     async createStorage(userId: number) {
@@ -26,10 +28,6 @@ export class UserStorageService {
           storageId 
         });
         storage.save();
-    }
-
-    async addItem(userId: number) {
-        
     }
 
     async getStoragesByUserId(userId: number) {
@@ -47,24 +45,6 @@ export class UserStorageService {
         }));
     }
 
-    async addItem(userId: number, storageId: string, file: Express.Multer.File, meta?: Record<string, any>) {
-      await this.verifyUserAccess(userId, storageId, [StorageRole.ADMIN, StorageRole.WRITE]);
-  
-      if (!file) throw new BadRequestException("File is required");
-  
-      const uploaded = await this.filesService.uploadFile(file);
-  
-      const item = await this.itemModel.create({
-        storageId,
-        fileId: uploaded.id,
-        meta: meta || {},
-        createdAt: new Date(),
-        createdBy: userId,
-      });
-  
-      return item;
-    }
-
     async verifyUserAccess(userId: number, storageId: string, requiredRoles: StorageRole[]) {
       const permissions = await this.permissionsService.getPermissionsByUserId(userId);
   
@@ -76,5 +56,12 @@ export class UserStorageService {
       }
   
       return true;
+    }
+
+    async createItemInStorage(storageId: string, userId: number) {
+      await this.verifyUserAccess(userId, storageId, [StorageRole.ADMIN, StorageRole.WRITE]);
+  
+      const item = await this.storageItemService.createItem(storageId, userId);
+      return item;
     }
 }      

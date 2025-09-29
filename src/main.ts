@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import { RmqOptions, Transport } from '@nestjs/microservices';
 import multipart from '@fastify/multipart';
 
 async function bootstrap() {
@@ -11,6 +12,26 @@ async function bootstrap() {
     AppModule,
     new FastifyAdapter()
   );
+
+  app.connectMicroservice<RmqOptions>({
+    transport: Transport.RMQ,
+    options: {
+      urls: [`amqp://rabbitmq:5672`],
+      queue: 'create_charge_psp',
+      prefetchCount: 1,
+      persistent: true,
+      noAck: false,
+      queueOptions: {
+        durable: true,
+      },
+      socketOptions: {
+        heartbeatIntervalInSeconds: 60,
+        reconnectTimeInSeconds: 5,
+      },
+    },
+  });
+
+  await app.startAllMicroservices();
   
   app.useGlobalPipes(new ValidationPipe());
 

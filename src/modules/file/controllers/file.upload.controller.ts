@@ -12,6 +12,7 @@ import { FileUploadService } from "../services/file.upload.service";
 import { UploadInitDto } from "../dto/upload/upload.init.dto";
 import { UploadInitMultipartDto } from "../dto/upload/upload.init.multipart.dto";
 import { UploadCompleteDto } from "../dto/upload/upload.complete.dto";
+import type { RequestWithUser } from "src/types/express";
   
   @Controller("/upload")
   export class FileUploadController {
@@ -22,12 +23,14 @@ import { UploadCompleteDto } from "../dto/upload/upload.complete.dto";
     async uploadFile(
       @UploadedFile() file: Express.Multer.File,
       @Body("roomId") roomId: string,
-      @Req() req: Request
+      @Req() req: RequestWithUser,
     ) {
+      const userId = req.user;
       await this.filesUploadService.uploadFileToS3AndSaveMetadata({
         file,
         roomId,
         uploaderIp: req.ip ?? 'none',
+        userId
       });
   
       return { success: true, message: "File uploaded successfully" };

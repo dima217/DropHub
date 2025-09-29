@@ -11,6 +11,11 @@ export class RoomController {
     return this.roomService.createRoom();
   }
 
+  @Post()
+  async findRoomById() {
+    return
+  }
+
   @Delete()
   async deleteRoom(@Body() body: DeleteRoomBody) {
     const { roomId } = body;

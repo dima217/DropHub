@@ -1,4 +1,4 @@
-import { BadGatewayException, BadRequestException, Injectable } from '@nestjs/common';
+import { BadGatewayException, BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { randomUUID } from 'crypto';
@@ -12,6 +12,7 @@ import { UploadCompleteDto } from '../dto/upload/upload.complete.dto';
 import { UploadToS3Request } from '../interfaces/file-request.interface';
 import { UploadInitMultipartDto } from '../dto/upload/upload.init.multipart.dto';
 import { FilesService } from './file.service';
+import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
 export class FileUploadService {
@@ -23,6 +24,7 @@ export class FileUploadService {
     private readonly fileService: FilesService,
     @InjectModel(File.name) private readonly fileModel: Model<FileDocument>,
     @InjectModel(Room.name) private readonly roomModel: Model<RoomDocument>,
+    @Inject('RABBITMQ_SERVICE') private readonly rabbitClient: ClientProxy,
   ) {
     this.bucket = process.env.AWS_S3_BUCKET ?? '';
     if (!this.bucket) {
@@ -31,7 +33,7 @@ export class FileUploadService {
   }
 
   async uploadFileToS3AndSaveMetadata(params: UploadToS3Request) {
-    const { file, roomId, uploaderIp } = params;
+    const { file, roomId, uploaderIp, userId } = params;
 
     if (!file || !roomId) {
       throw new BadRequestException(
@@ -59,6 +61,12 @@ export class FileUploadService {
 
     await this.roomModel.findByIdAndUpdate(roomId, {
       $push: { files: fileUploadMeta._id },
+    });
+
+    this.rabbitClient.emit('storage.item.created', {
+      storageId: roomId,
+      fileId: fileUploadMeta._id,
+      userId,
     });
   }
 
