@@ -2,36 +2,32 @@ import {
     Body,
     Controller,
     Post,
-    UploadedFile,
     UseInterceptors,
     Req,
   } from "@nestjs/common";
-import { FileInterceptor } from "@nestjs/platform-express";
 import type { Request } from "express";
 import { FileUploadService } from "../services/file.upload.service";
 import { UploadInitDto } from "../dto/upload/upload.init.dto";
 import { UploadInitMultipartDto } from "../dto/upload/upload.init.multipart.dto";
 import { UploadCompleteDto } from "../dto/upload/upload.complete.dto";
-import type { RequestWithUser } from "src/types/express";
+import { UserIpInterceptor } from "src/common/interceptors/user.ip.interceptor";
+import { UploadToS3Dto } from "../dto/upload/upload.s3.dto";
   
   @Controller("/upload")
   export class FileUploadController {
     constructor(private readonly filesUploadService: FileUploadService) {}
   
     @Post()
-    @UseInterceptors(FileInterceptor('file'))
+    @UseInterceptors(UserIpInterceptor)
     async uploadFile(
-      @UploadedFile() file: Express.Multer.File,
-      @Body("roomId") roomId: string,
-      @Req() req: RequestWithUser,
+      @Body("roomId") s3UploadData: UploadToS3Dto,
+      @Req() req: Request,
     ) {
-      const userId = req.user;
-      await this.filesUploadService.uploadFileToS3AndSaveMetadata({
-        file,
-        roomId,
-        uploaderIp: req.ip ?? 'none',
-        userId
-      });
+      const uploadData = {
+        ...s3UploadData, 
+        uploaderIp: req.userIp
+      }
+      await this.filesUploadService.uploadFileToS3AndSaveMetadata(uploadData);
   
       return { success: true, message: "File uploaded successfully" };
     }

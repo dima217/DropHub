@@ -1,9 +1,18 @@
-import { IsString } from 'class-validator';
+import { IsNumber, IsString } from 'class-validator';
 
 export class UploadToS3Dto {
-  @IsString()
-  roomId: string;
+    @IsString()
+    originalName: string;
 
-  @IsString()
-  uploaderIp: string;
+    @IsNumber()
+    fileSize: number;
+
+    @IsString()
+    mimeType: string;
+
+    @IsString()
+    roomId: string;
+    
+    @IsString()
+    uploaderIp?: string;
 }

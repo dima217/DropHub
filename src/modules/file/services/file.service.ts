@@ -19,7 +19,7 @@ export class FilesService {
       ...dto,
       uploadTime: new Date(),
       downloadCount: 0,
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), 
     });
 
     return fileDoc.save();
@@ -29,26 +29,27 @@ export class FilesService {
     if (!dto.files || dto.files.length === 0) {
       throw new BadRequestException('No files provided');
     }
-    const fileIds = dto.files;
 
     const updatedFiles = await Promise.all(
-      fileIds.map(async (fileId) => {
-        try {
-          return await this.fileModel
-            .findByIdAndUpdate(
-              fileId,
-              { $set: { expiresAt: new Date() } },
-              { new: true },
-            )
-            .exec();
-        } catch (err) {
-          console.error(`Failed to expire file ${fileId}`, err);
-          return null;
-        }
-      }),
+      dto.files.map((fileId) => this.expireFile(fileId))
     );
 
     return updatedFiles.filter(Boolean);
+  }
+
+  private async expireFile(fileId: string) {
+    try {
+      return await this.fileModel
+        .findByIdAndUpdate(
+          fileId,
+          { $set: { expiresAt: new Date() } },
+          { new: true },
+        )
+        .exec();
+    } catch (err) {
+      console.error(`Failed to expire file ${fileId}`, err);
+      return null;
+    }
   }
 
   async getFilesByRoomID(dto: GetFilesDto) {

@@ -1,6 +1,7 @@
-export interface UploadToS3Request {
-    file: Express.Multer.File, 
+export interface UploadData {
+    originalName: string,
+    fileSize: number, 
+    mimeType: string,
     roomId: string, 
-    uploaderIp: string, 
-    userId: number;
+    uploaderIp?: string,
 }

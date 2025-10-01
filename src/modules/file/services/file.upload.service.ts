@@ -7,12 +7,12 @@ import { File, FileDocument } from '../schemas/file.schema';
 import { Room, RoomDocument } from '../../room/schemas/room.schema';
 import { MAX_UPLOAD_SIZE, UPLOAD_STRATEGY } from '../../../constants/interfaces';
 import { S3Service } from 'src/s3/s3.service';
-import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { UploadCompleteDto } from '../dto/upload/upload.complete.dto';
-import { UploadToS3Request } from '../interfaces/file-request.interface';
+import { UploadData } from '../interfaces/file-request.interface';
 import { UploadInitMultipartDto } from '../dto/upload/upload.init.multipart.dto';
 import { FilesService } from './file.service';
-import { ClientProxy } from '@nestjs/microservices';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 @Injectable()
 export class FileUploadService {
@@ -24,7 +24,6 @@ export class FileUploadService {
     private readonly fileService: FilesService,
     @InjectModel(File.name) private readonly fileModel: Model<FileDocument>,
     @InjectModel(Room.name) private readonly roomModel: Model<RoomDocument>,
-    @Inject('RABBITMQ_SERVICE') private readonly rabbitClient: ClientProxy,
   ) {
     this.bucket = process.env.AWS_S3_BUCKET ?? '';
     if (!this.bucket) {
@@ -32,42 +31,45 @@ export class FileUploadService {
     }
   }
 
-  async uploadFileToS3AndSaveMetadata(params: UploadToS3Request) {
-    const { file, roomId, uploaderIp, userId } = params;
+  async getPresignedUrl(filename: string, contentType: string) {
+    const key = `uploads/${Date.now()}-${filename}`;
 
-    if (!file || !roomId) {
+    const url = await getSignedUrl(
+      this.s3Service.client,
+      new PutObjectCommand({
+        Bucket: process.env.AWS_S3_BUCKET!,
+        Key: key,
+        ContentType: contentType,
+      }),
+      { expiresIn: 3600 },
+    );
+
+    return { url, key };
+  }
+
+  async uploadFileToS3AndSaveMetadata(params: UploadData) {
+    const { fileSize, mimeType, roomId, uploaderIp, originalName } = params;
+
+    if (!fileSize || !roomId) {
       throw new BadRequestException(
         { error: "Missing 'file' or 'roomId'" },
       );
     }
-
-    const fileKey = `${roomId}/${randomUUID()}-${file.originalname}`;
-    const fileBuffer = file.buffer;
-
-    await this.s3Service.uploadFile({
-        Bucket: this.bucket,
-        Key: fileKey,
-        Body: fileBuffer,
-        ContentType: file.mimetype,
-    });
-
+    const fileKey = `${roomId}/${randomUUID()}-${originalName}`;
+  
     const fileUploadMeta = await this.fileService.createFileMeta({
-      originalName: file.originalname,
+      originalName: originalName,
       storedName: fileKey,
-      size: fileBuffer.length,
-      mimeType: file.mimetype,
+      size: fileSize,
+      mimeType: mimeType,
       uploaderIp,
     });
-
+    
     await this.roomModel.findByIdAndUpdate(roomId, {
       $push: { files: fileUploadMeta._id },
     });
 
-    this.rabbitClient.emit('storage.item.created', {
-      storageId: roomId,
-      fileId: fileUploadMeta._id,
-      userId,
-    });
+    return this.getPresignedUrl(originalName, mimeType)
   }
 
   async initUploading(fileSize: number) {
@@ -116,14 +118,14 @@ export class FileUploadService {
     });
   }
 
-  async cancelUpload(roomId: string, uploadId: string) { // cancel uploading
+  async cancelUpload(roomId: string, uploadId: string) { 
     await this.fileModel.findOneAndUpdate(
       { _id: roomId, 'uploadSession.uploadId': uploadId },
       { $set: { 'uploadSession.status': 'canceled' } },
     );
   }
 
-  async stopUpload(  // stop uploading
+  async stopUpload(  
     roomId: string, 
     uploadId: string, 
     uploadedParts: number[],

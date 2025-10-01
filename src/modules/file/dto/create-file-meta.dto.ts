@@ -25,7 +25,7 @@ export class CreateFileMetaDto {
   mimeType: string;
 
   @IsString()
-  uploaderIp: string;
+  uploaderIp?: string;
 
   @IsOptional()
   @IsObject()
