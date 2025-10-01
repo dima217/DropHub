@@ -1,10 +1,10 @@
 import { Body, Controller, Post } from "@nestjs/common";
-import { UserStorageService } from '../services/user.storage.service';
+import { StorageService } from '../services/user.storage.service';
 
 @Controller('storage')
 export class UserStorageController {
     constructor(
-        private readonly userStorageService: UserStorageService,
+        private readonly userStorageService: StorageService,
     ) {}
 
     /* @Post("files")
