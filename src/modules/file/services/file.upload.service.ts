@@ -59,7 +59,7 @@ export class FileUploadService {
 
     const fileUploadMeta = await this.fileService.createFileMeta({
       originalName: originalName,
-      storedKey: key,
+      key: key,
       size: fileSize,
       mimeType: mimeType,
       uploaderIp,
@@ -83,18 +83,6 @@ export class FileUploadService {
     );
   }
 
-  async stopUpload(roomId: string, uploadId: string, uploadedParts: number[]) {
-    await this.fileModel.findOneAndUpdate(
-      { _id: roomId, 'uploadSession.uploadId': uploadId },
-      {
-        $set: {
-          'uploadSession.status': 'stopped',
-          'uploadSession.uploadedParts': uploadedParts,
-        },
-      },
-    );
-  }
-
   // MULTIPART DEMO:
 
   async initUploading(fileSize: number) {
@@ -114,7 +102,7 @@ export class FileUploadService {
     }
     const fileUploadMeta = await this.fileService.createFileMeta({
       originalName: params.fileName,
-      storedKey: params.key,
+      key: params.key,
       size: params.fileSize,
       mimeType: params.fileType,
       uploaderIp: ip,
@@ -129,13 +117,25 @@ export class FileUploadService {
   }
 
   async completeMultipart(params: UploadCompleteDto) {
-    await this.s3Stream.completeMultipart(params.key, params.uploadId, params.parts);
+    const file = await this.fileService.getFileByUploadId(params.uploadId);
 
-    const file = await this.fileService.getFileByKey(params.key);
+    await this.s3Stream.completeMultipart(file.key, params.uploadId, params.parts);
 
     await this.roomModel.findByIdAndUpdate(params.roomId, {
       $push: { files: file._id },
       $set: { 'uploadSession.status': 'complete' },
     });
+  }
+
+  async stopUpload(roomId: string, uploadId: string, uploadedParts: number[]) {
+    await this.fileModel.findOneAndUpdate(
+      { _id: roomId, 'uploadSession.uploadId': uploadId },
+      {
+        $set: {
+          'uploadSession.status': 'stopped',
+          'uploadSession.uploadedParts': uploadedParts,
+        },
+      },
+    );
   }
 }

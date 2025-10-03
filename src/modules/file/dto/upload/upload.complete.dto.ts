@@ -12,9 +12,6 @@ export class UploadCompleteDto {
   @IsString()
   uploadId: string;
 
-  @IsString()
-  key: string;
-
   @IsArray()
   parts: PartDto[];
 

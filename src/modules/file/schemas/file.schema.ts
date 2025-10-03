@@ -9,6 +9,9 @@ export class File {
   @Prop({ required: true })
   originalName: string;
 
+  @Prop({ required: true })
+  key: string;
+
   @Prop({ required: true, unique: true })
   storedName: string;
 

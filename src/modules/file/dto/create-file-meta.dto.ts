@@ -7,7 +7,7 @@ export class UploadSessionDto {
 
   @IsEnum(FileUploadStatus)
   status: FileUploadStatus;
-  
+
   @IsArray()
   uploadedParts?: number[];
 }
@@ -17,7 +17,7 @@ export class CreateFileMetaDto {
   originalName: string;
 
   @IsString()
-  storedKey: string;
+  key: string;
 
   @IsNumber()
   size: number;

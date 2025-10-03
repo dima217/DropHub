@@ -6,6 +6,7 @@ import { Room, RoomDocument } from '../../room/schemas/room.schema';
 import { CreateFileMetaDto } from '../dto/create-file-meta.dto';
 import { DeleteFileDto } from '../dto/delete-file.dto';
 import { GetFilesDto } from '../dto/get-files.dto';
+import { FileUploadStatus } from 'src/constants/interfaces';
 
 @Injectable()
 export class FilesService {
@@ -65,11 +66,18 @@ export class FilesService {
     return validFiles;
   }
 
-  async getFileByKey(key: string) {
-    const fileDoc = await this.fileModel.findOne({ key }).lean();
+  async getFileByUploadId(uploadId: string) {
+    const fileDoc = await this.fileModel.findOne({ 'uploadSession.uploadId': uploadId }).lean();
 
     if (!fileDoc) {
       throw new NotFoundException({ error: 'File doc does not exist' });
+    }
+
+    if (fileDoc.expiresAt && fileDoc.expiresAt <= new Date()) {
+      throw new NotFoundException({ error: 'File has expired' });
+    }
+    if (fileDoc.uploadSession.status !== FileUploadStatus.COMPLETE) {
+      throw new BadRequestException({ error: 'File upload not completed' });
     }
 
     return fileDoc;
