@@ -5,7 +5,7 @@ import { randomUUID } from 'crypto';
 import { S3WriteStream } from '../utils/s3-write-stream';
 import { File, FileDocument } from '../schemas/file.schema';
 import { Room, RoomDocument } from '../../room/schemas/room.schema';
-import { MAX_UPLOAD_SIZE, UPLOAD_STRATEGY } from '../../../constants/interfaces';
+import { FileUploadStatus, MAX_UPLOAD_SIZE, UPLOAD_STRATEGY } from '../../../constants/interfaces';
 import { S3Service } from 'src/s3/s3.service';
 import { UploadCompleteDto } from '../dto/upload/upload.complete.dto';
 import { UploadData } from '../interfaces/file-request.interface';
@@ -49,73 +49,33 @@ export class FileUploadService {
 
   async uploadFileToS3AndSaveMetadata(params: UploadData) {
     const { fileSize, mimeType, roomId, uploaderIp, originalName } = params;
+    const uploadId = randomUUID();
 
     if (!fileSize || !roomId) {
       throw new BadRequestException(
         { error: "Missing 'file' or 'roomId'" },
       );
     }
-    const fileKey = `${roomId}/${randomUUID()}-${originalName}`;
+
+    const { url, key } = await this.getPresignedUrl(originalName, mimeType)
   
     const fileUploadMeta = await this.fileService.createFileMeta({
       originalName: originalName,
-      storedName: fileKey,
+      storedKey: key,
       size: fileSize,
       mimeType: mimeType,
       uploaderIp,
+      uploadSession: {
+        uploadId: uploadId,
+        status: FileUploadStatus.IN_PROGRESS,
+      }
     });
     
     await this.roomModel.findByIdAndUpdate(roomId, {
       $push: { files: fileUploadMeta._id },
     });
 
-    return this.getPresignedUrl(originalName, mimeType)
-  }
-
-  async initUploading(fileSize: number) {
-    if (!fileSize) {
-      throw new BadRequestException('Filesize is undefined')
-    } 
-    if (fileSize > 0) {
-      return fileSize >= MAX_UPLOAD_SIZE ? UPLOAD_STRATEGY.MULTIPART : UPLOAD_STRATEGY.SINGLE;
-    }
-    return null;
-  }
-
-  async initUploadMultipart(params: UploadInitMultipartDto, ip: string) {
-    const init = await this.s3Stream.initMultipart(params.fileName, params.totalParts);
-    if (!init) {
-      throw new BadGatewayException(
-        { error: "Init multipart failed" },
-      );
-    }
-    const fileUploadMeta = await this.fileService.createFileMeta({
-      originalName: params.fileName,
-      storedName: params.key,
-      size: params.fileSize,
-      mimeType: params.fileType,
-      uploaderIp: ip,
-      uploadSession: {
-        uploadId: init.uploadId,    
-        status: 'in_progress',
-        uploadedParts: [],
-      },
-    });
-
-    return { uploadId: init.uploadId, key: init.key, fileId: fileUploadMeta._id };
-  }
-
-  async completeMultipart(
-    params: UploadCompleteDto,
-  ) {
-    await this.s3Stream.completeMultipart(params.key, params.uploadId, params.parts);
-
-    const file = await this.fileService.getFileByKey(params.key);
-
-    await this.roomModel.findByIdAndUpdate(params.roomId, {
-      $push: { files: file._id },
-      $set: { 'uploadSession.status': 'complete' },
-    });
+    return { url, uploadId };
   }
 
   async cancelUpload(roomId: string, uploadId: string) { 
@@ -137,5 +97,53 @@ export class FileUploadService {
         'uploadSession.uploadedParts': uploadedParts, 
       } },
     );
+  }
+
+  // MULTIPART DEMO:
+
+  async initUploading(fileSize: number) {
+    if (!fileSize) {
+      throw new BadRequestException('Filesize is undefined')
+    } 
+    if (fileSize > 0) {
+      return fileSize >= MAX_UPLOAD_SIZE ? UPLOAD_STRATEGY.MULTIPART : UPLOAD_STRATEGY.SINGLE;
+    }
+    return null;
+  }
+
+  async initUploadMultipart(params: UploadInitMultipartDto, ip: string) {
+    const init = await this.s3Stream.initMultipart(params.fileName, params.totalParts);
+    if (!init) {
+      throw new BadGatewayException(
+        { error: "Init multipart failed" },
+      );
+    }
+    const fileUploadMeta = await this.fileService.createFileMeta({
+      originalName: params.fileName,
+      storedKey: params.key,
+      size: params.fileSize,
+      mimeType: params.fileType,
+      uploaderIp: ip,
+      uploadSession: {
+        uploadId: init.uploadId,    
+        status: FileUploadStatus.IN_PROGRESS,
+        uploadedParts: [],
+      },
+    });
+
+    return { uploadId: init.uploadId, key: init.key, fileId: fileUploadMeta._id };
+  }
+
+  async completeMultipart(
+    params: UploadCompleteDto,
+  ) {
+    await this.s3Stream.completeMultipart(params.key, params.uploadId, params.parts);
+
+    const file = await this.fileService.getFileByKey(params.key);
+
+    await this.roomModel.findByIdAndUpdate(params.roomId, {
+      $push: { files: file._id },
+      $set: { 'uploadSession.status': 'complete' },
+    });
   }
 }

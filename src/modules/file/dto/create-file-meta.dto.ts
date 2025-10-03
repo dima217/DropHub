@@ -1,14 +1,15 @@
-import { IsString, IsNumber, IsOptional, IsObject, IsArray, IsIn } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsObject, IsArray, IsIn, IsEnum } from 'class-validator';
+import { FileUploadStatus } from 'src/constants/interfaces';
 
 export class UploadSessionDto {
   @IsString()
   uploadId: string;
 
-  @IsIn(['in_progress', 'stopped', 'canceled', 'complete'])
-  status: string;
-
+  @IsEnum(FileUploadStatus)
+  status: FileUploadStatus;
+  
   @IsArray()
-  uploadedParts: number[];
+  uploadedParts?: number[];
 }
 
 export class CreateFileMetaDto {
@@ -16,7 +17,7 @@ export class CreateFileMetaDto {
   originalName: string;
 
   @IsString()
-  storedName: string;
+  storedKey: string;
 
   @IsNumber()
   size: number;
