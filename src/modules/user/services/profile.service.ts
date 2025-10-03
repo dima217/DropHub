@@ -15,7 +15,7 @@ export class ProfileService {
 
   async createProfileTransactional(
     data: Partial<Profile>,
-    manager: EntityManager
+    manager: EntityManager,
   ): Promise<Profile> {
     const profile = manager.create(Profile, data);
     return manager.save(profile);

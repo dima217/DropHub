@@ -1,5 +1,15 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { S3Client, ListBucketsCommand, Bucket, PutObjectCommandInput, PutObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  ListBucketsCommand,
+  Bucket,
+  PutObjectCommandInput,
+  PutObjectCommand,
+  GetObjectCommandInput,
+  GetObjectCommand,
+  DeleteObjectCommandInput,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
 import { NodeHttpHandler } from '@smithy/node-http-handler';
 import https from 'https';
 
@@ -36,5 +46,13 @@ export class S3Service implements OnModuleInit {
 
   async uploadFile(params: PutObjectCommandInput) {
     return this.client.send(new PutObjectCommand(params));
+  }
+
+  async getFile(params: GetObjectCommandInput) {
+    return this.client.send(new GetObjectCommand(params));
+  }
+
+  async deleteFile(params: DeleteObjectCommandInput) {
+    return this.client.send(new DeleteObjectCommand(params));
   }
 }

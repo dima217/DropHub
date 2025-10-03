@@ -52,13 +52,11 @@ export class FileUploadService {
     const uploadId = randomUUID();
 
     if (!fileSize || !roomId) {
-      throw new BadRequestException(
-        { error: "Missing 'file' or 'roomId'" },
-      );
+      throw new BadRequestException({ error: "Missing 'file' or 'roomId'" });
     }
 
-    const { url, key } = await this.getPresignedUrl(originalName, mimeType)
-  
+    const { url, key } = await this.getPresignedUrl(originalName, mimeType);
+
     const fileUploadMeta = await this.fileService.createFileMeta({
       originalName: originalName,
       storedKey: key,
@@ -68,9 +66,9 @@ export class FileUploadService {
       uploadSession: {
         uploadId: uploadId,
         status: FileUploadStatus.IN_PROGRESS,
-      }
+      },
     });
-    
+
     await this.roomModel.findByIdAndUpdate(roomId, {
       $push: { files: fileUploadMeta._id },
     });
@@ -78,24 +76,22 @@ export class FileUploadService {
     return { url, uploadId };
   }
 
-  async cancelUpload(roomId: string, uploadId: string) { 
+  async cancelUpload(roomId: string, uploadId: string) {
     await this.fileModel.findOneAndUpdate(
       { _id: roomId, 'uploadSession.uploadId': uploadId },
       { $set: { 'uploadSession.status': 'canceled' } },
     );
   }
 
-  async stopUpload(  
-    roomId: string, 
-    uploadId: string, 
-    uploadedParts: number[],
-  ) { 
+  async stopUpload(roomId: string, uploadId: string, uploadedParts: number[]) {
     await this.fileModel.findOneAndUpdate(
       { _id: roomId, 'uploadSession.uploadId': uploadId },
-      { $set: { 
-        'uploadSession.status': 'stopped',
-        'uploadSession.uploadedParts': uploadedParts, 
-      } },
+      {
+        $set: {
+          'uploadSession.status': 'stopped',
+          'uploadSession.uploadedParts': uploadedParts,
+        },
+      },
     );
   }
 
@@ -103,8 +99,8 @@ export class FileUploadService {
 
   async initUploading(fileSize: number) {
     if (!fileSize) {
-      throw new BadRequestException('Filesize is undefined')
-    } 
+      throw new BadRequestException('Filesize is undefined');
+    }
     if (fileSize > 0) {
       return fileSize >= MAX_UPLOAD_SIZE ? UPLOAD_STRATEGY.MULTIPART : UPLOAD_STRATEGY.SINGLE;
     }
@@ -114,9 +110,7 @@ export class FileUploadService {
   async initUploadMultipart(params: UploadInitMultipartDto, ip: string) {
     const init = await this.s3Stream.initMultipart(params.fileName, params.totalParts);
     if (!init) {
-      throw new BadGatewayException(
-        { error: "Init multipart failed" },
-      );
+      throw new BadGatewayException({ error: 'Init multipart failed' });
     }
     const fileUploadMeta = await this.fileService.createFileMeta({
       originalName: params.fileName,
@@ -125,7 +119,7 @@ export class FileUploadService {
       mimeType: params.fileType,
       uploaderIp: ip,
       uploadSession: {
-        uploadId: init.uploadId,    
+        uploadId: init.uploadId,
         status: FileUploadStatus.IN_PROGRESS,
         uploadedParts: [],
       },
@@ -134,9 +128,7 @@ export class FileUploadService {
     return { uploadId: init.uploadId, key: init.key, fileId: fileUploadMeta._id };
   }
 
-  async completeMultipart(
-    params: UploadCompleteDto,
-  ) {
+  async completeMultipart(params: UploadCompleteDto) {
     await this.s3Stream.completeMultipart(params.key, params.uploadId, params.parts);
 
     const file = await this.fileService.getFileByKey(params.key);

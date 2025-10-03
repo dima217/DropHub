@@ -19,7 +19,7 @@ export class FilesService {
       ...dto,
       uploadTime: new Date(),
       downloadCount: 0,
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), 
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
 
     return fileDoc.save();
@@ -30,9 +30,7 @@ export class FilesService {
       throw new BadRequestException('No files provided');
     }
 
-    const updatedFiles = await Promise.all(
-      dto.files.map((fileId) => this.expireFile(fileId))
-    );
+    const updatedFiles = await Promise.all(dto.files.map((fileId) => this.expireFile(fileId)));
 
     return updatedFiles.filter(Boolean);
   }
@@ -40,11 +38,7 @@ export class FilesService {
   private async expireFile(fileId: string) {
     try {
       return await this.fileModel
-        .findByIdAndUpdate(
-          fileId,
-          { $set: { expiresAt: new Date() } },
-          { new: true },
-        )
+        .findByIdAndUpdate(fileId, { $set: { expiresAt: new Date() } }, { new: true })
         .exec();
     } catch (err) {
       console.error(`Failed to expire file ${fileId}`, err);
@@ -66,24 +60,18 @@ export class FilesService {
       throw new NotFoundException("Room hasn't been found");
     }
 
-    const validFiles = room.files.filter(
-      (file) => !file.expiresAt || file.expiresAt > new Date(),
-    );
+    const validFiles = room.files.filter((file) => !file.expiresAt || file.expiresAt > new Date());
 
     return validFiles;
   }
 
   async getFileByKey(key: string) {
     const fileDoc = await this.fileModel.findOne({ key }).lean();
-    
+
     if (!fileDoc) {
-      throw new NotFoundException(
-        { error: "File doc does not exist" },
-      );
+      throw new NotFoundException({ error: 'File doc does not exist' });
     }
 
     return fileDoc;
   }
 }
-
-

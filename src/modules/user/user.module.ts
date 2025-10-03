@@ -12,7 +12,7 @@ import { ImageModule } from '../images/image.module';
   imports: [
     TypeOrmModule.forFeature([User]),
     JwtModule.registerAsync({
-      imports: [ConfigModule, CacheModule], 
+      imports: [ConfigModule, CacheModule],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get('JWT_SECRET'),
         signOptions: { expiresIn: '30d' },

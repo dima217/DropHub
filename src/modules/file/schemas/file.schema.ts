@@ -31,9 +31,9 @@ export class File {
   uploaderIp?: string;
 
   @Prop({
-    default: () => new Date(Date.now() + 1000 * 60 * 60 * 6),
+    default: null,
   })
-  expiresAt: Date;
+  expiresAt: Date | null;
 
   @Prop({
     type: Object,
