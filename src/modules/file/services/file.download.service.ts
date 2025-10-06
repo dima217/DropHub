@@ -1,21 +1,20 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { S3Service } from 'src/s3/s3.service';
 import { S3ReadStream } from '../utils/s3-read-stream';
 import { Readable } from 'stream';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { FilesService } from './file.service';
+import { S3_BUCKET_TOKEN } from 'src/s3/s3.module';
 
 @Injectable()
 export class FileDownloadService {
   constructor(
     private readonly s3Service: S3Service,
-    private readonly bucket: string,
     private readonly s3ReadStream: S3ReadStream,
     private readonly fileService: FilesService,
-  ) {
-    this.bucket = process.env.S3_BUCKET ?? '';
-  }
+    @Inject(S3_BUCKET_TOKEN) private readonly bucket: string,
+  ) {}
 
   async getDownloadLink(uploadId: string): Promise<string> {
     const file = await this.fileService.getFileByUploadId(uploadId);

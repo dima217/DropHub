@@ -13,23 +13,18 @@ import { UploadInitMultipartDto } from '../dto/upload/upload.init.multipart.dto'
 import { FilesService } from './file.service';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { S3_BUCKET_TOKEN } from '../files.module';
 
 @Injectable()
 export class FileUploadService {
-  private readonly bucket: string;
-
   constructor(
     private readonly s3Service: S3Service,
     private readonly s3Stream: S3WriteStream,
     private readonly fileService: FilesService,
+    @Inject(S3_BUCKET_TOKEN) private readonly bucket: string,
     @InjectModel(File.name) private readonly fileModel: Model<FileDocument>,
     @InjectModel(Room.name) private readonly roomModel: Model<RoomDocument>,
-  ) {
-    this.bucket = process.env.AWS_S3_BUCKET ?? '';
-    if (!this.bucket) {
-      throw new Error('AWS_S3_BUCKET is not set');
-    }
-  }
+  ) {}
 
   async getPresignedUrl(filename: string, contentType: string) {
     const key = `uploads/${Date.now()}-${filename}`;
@@ -37,7 +32,7 @@ export class FileUploadService {
     const url = await getSignedUrl(
       this.s3Service.client,
       new PutObjectCommand({
-        Bucket: process.env.AWS_S3_BUCKET!,
+        Bucket: this.bucket,
         Key: key,
         ContentType: contentType,
       }),

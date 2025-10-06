@@ -11,10 +11,11 @@ import { UserStorageModule } from './modules/storage/user_storage.module';
 import { S3Module } from './s3/s3.module';
 import { BullConfigModule } from './config/modules/bull-config.module';
 import { DatabaseModule } from './config/modules/database.module';
+import { AppConfig } from './config/configuration.interface';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
+    ConfigModule.forRoot<AppConfig>({
       load: [configuration],
       isGlobal: true,
       envFilePath: [`.env.${process.env.NODE_ENV || 'development'}`, '.env'],
