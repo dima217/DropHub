@@ -17,6 +17,12 @@ export const configuration = (): AppConfig => {
     mongo: {
       uri: process.env.MONGO_URL || '',
     },
+    s3: {
+      endpoint: process.env.S3_ENDPOINT,
+      bucket: process.env.S3_BUCKET,
+      accessKeyId: process.env.S3_ACCESS_KEY_ID,
+      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+    },
     swagger: {
       title: process.env.SWAGGER_TITLE,
       description: process.env.SWAGGER_DESCRIPTION,

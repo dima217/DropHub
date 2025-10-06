@@ -2,10 +2,14 @@ import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { S3Service } from '../../../s3/s3.service.js';
+import { ConfigService } from '@nestjs/config';
 
 @Processor('file-cleanup')
 export class FileCleanUpProcessor extends WorkerHost {
-  constructor(private readonly s3Service: S3Service) {
+  constructor(
+    private readonly s3Service: S3Service,
+    private readonly configService: ConfigService,
+  ) {
     super();
   }
 
@@ -15,7 +19,7 @@ export class FileCleanUpProcessor extends WorkerHost {
     try {
       await this.s3Service.client.send(
         new DeleteObjectCommand({
-          Bucket: process.env.AWS_S3_BUCKET as string,
+          Bucket: this.configService.get<string>('s3.bucket'),
           Key: storedName,
         }),
       );

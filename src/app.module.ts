@@ -17,10 +17,7 @@ import { DatabaseModule } from './config/modules/database.module';
     ConfigModule.forRoot({
       load: [configuration],
       isGlobal: true,
-      envFilePath: [
-        `.env.${process.env.NODE_ENV || 'development'}`,
-        '.env'
-      ]
+      envFilePath: [`.env.${process.env.NODE_ENV || 'development'}`, '.env'],
     }),
 
     DatabaseModule,
