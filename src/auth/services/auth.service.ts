@@ -29,18 +29,18 @@ export class AuthService {
   ) {}
 
   async generateAccessToken(userId: number) {
-    return this.jwtService.sign({sub: String(userId)})
+    return this.jwtService.sign({ sub: String(userId) });
   }
 
   async generateRefreshToken(userId: number) {
     return this.jwtService.sign(
       { sub: userId },
-        {
-          secret: this.configService.get('JWT_REFRESH_SECRET'),
-          expiresIn: '7d'
-        }
-    )
-  }  
+      {
+        secret: this.configService.get('JWT_REFRESH_SECRET'),
+        expiresIn: '7d',
+      },
+    );
+  }
 
   async sendAuthResponse(
     req: Request,
@@ -48,18 +48,17 @@ export class AuthService {
     payload: {
       accessToken: string;
       refreshToken: string;
-    }
+    },
   ) {
-    const isBrowser =
-      /Mozilla|Chrome|Safari|Firefox|Edge|Opera/i.test(req.headers['user-agent'] || '') &&
-      (req.headers['accept'] || '').includes('text/html');
+    const isMobileApp = req.headers['x-client-type'] === 'mobile-app';
+    const isBrowser = !isMobileApp;
 
     if (isBrowser) {
       res.cookie('refreshToken', payload.refreshToken, {
         httpOnly: true,
         sameSite: 'strict',
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 7 * 24 * 60 * 60 * 1000, 
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
       return res.status(200).json({
@@ -67,7 +66,7 @@ export class AuthService {
       });
     }
 
-    return res.status(200).json(payload); 
+    return res.status(200).json(payload);
   }
 
   async refreshToken(token: string): Promise<{
@@ -97,10 +96,7 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    const passwordIsMatch = await argon2.verify(
-      findUser.password,
-      authPayloadDto.password,
-    );
+    const passwordIsMatch = await argon2.verify(findUser.password, authPayloadDto.password);
 
     if (passwordIsMatch) {
       return findUser.id;
@@ -116,17 +112,22 @@ export class AuthService {
     await this.usersService.updateRefreshToken(userId, refreshToken);
 
     return {
-        accessToken,
-        refreshToken,
+      accessToken,
+      refreshToken,
     };
   }
 
-  async registerUser(dto: { email: string; password: string; firstName: string; lastName: string }) {
+  async registerUser(dto: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+  }) {
     const userData = {
       ...dto,
       password: dto.password,
-      role: UserRole.USER,      
-      isOAuthUser: false,       
+      role: UserRole.USER,
+      isOAuthUser: false,
     };
 
     const existingUser = await this.usersService.findByEmail(dto.email);
@@ -160,7 +161,7 @@ export class AuthService {
     const accessToken = await this.generateAccessToken(user.id);
     const refreshToken = await this.generateRefreshToken(user.id);
     await this.usersService.updateRefreshToken(user.id, refreshToken);
-  
+
     return {
       accessToken,
       refreshToken,
@@ -207,11 +208,7 @@ export class AuthService {
     return this.usersService.findByEmail(email);
   }
 
-  async changePassword(
-    userId: number,
-    oldPassword: string,
-    newPassword: string,
-  ) {
+  async changePassword(userId: number, oldPassword: string, newPassword: string) {
     const user = await this.usersService.getUserById(userId);
     if (!user) {
       throw new NotFoundException('User not found...');
