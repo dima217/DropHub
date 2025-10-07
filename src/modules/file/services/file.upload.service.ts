@@ -13,7 +13,7 @@ import { UploadInitMultipartDto } from '../dto/upload/upload.init.multipart.dto'
 import { FilesService } from './file.service';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { S3_BUCKET_TOKEN } from '../files.module';
+import { S3_BUCKET_TOKEN } from 'src/s3/s3.tokens';
 
 @Injectable()
 export class FileUploadService {
