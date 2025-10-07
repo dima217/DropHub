@@ -1,4 +1,13 @@
-import { Body, Controller, Post, UseInterceptors, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  UseInterceptors,
+  Req,
+  UseGuards,
+  BadRequestException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { FileUploadService } from '../services/file.upload.service';
 import { UploadInitDto } from '../dto/upload/upload.init.dto';
@@ -6,21 +15,42 @@ import { UploadInitMultipartDto } from '../dto/upload/upload.init.multipart.dto'
 import { UploadCompleteDto } from '../dto/upload/upload.complete.dto';
 import { UserIpInterceptor } from 'src/common/interceptors/user.ip.interceptor';
 import { UploadToS3Dto } from '../dto/upload/upload.s3.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('/upload')
 export class FileUploadController {
   constructor(private readonly filesUploadService: FileUploadService) {}
 
-  @Post()
+  @Post('auth')
+  @UseGuards(AuthGuard)
   @UseInterceptors(UserIpInterceptor)
-  async uploadFile(@Body('roomId') s3UploadData: UploadToS3Dto, @Req() req: Request) {
+  async uploadFileAuthenticated(@Body() s3UploadData: UploadToS3Dto, @Req() req: Request) {
+    if (s3UploadData.uploadToken) {
+      throw new BadRequestException('Use the public route for token-based upload.');
+    }
+
     const uploadData = {
       ...s3UploadData,
       uploaderIp: req.userIp,
     };
-    await this.filesUploadService.uploadFileToS3AndSaveMetadata(uploadData);
 
-    return { success: true, message: 'File uploaded successfully' };
+    const result = await this.filesUploadService.uploadFileToS3AndSaveMetadata(uploadData);
+    return { success: true, url: result.url, uploadId: result.uploadId };
+  }
+
+  @Post('public')
+  @UseInterceptors(UserIpInterceptor)
+  async uploadFilePublic(@Body() s3UploadData: UploadToS3Dto, @Req() req: Request) {
+    if (!s3UploadData.uploadToken) {
+      throw new UnauthorizedException('uploadToken is required for public access.');
+    }
+    const uploadData = {
+      ...s3UploadData,
+      uploaderIp: req.userIp,
+    };
+
+    // const result = await this.filesUploadService.uploadFileByToken(uploadData);
+    // return { success: true, url: result.url, uploadId: result.uploadId };
   }
 
   @Post('init')
