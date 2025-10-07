@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import axios from 'axios'; 
+import axios from 'axios';
 
 @Injectable()
 export class MailService {
@@ -46,7 +46,7 @@ export class MailService {
     try {
       const response = await axios.post(url, msg, {
         headers: {
-          'Authorization': `Bearer ${this.sendGridApiKey}`, 
+          Authorization: `Bearer ${this.sendGridApiKey}`,
           'Content-Type': 'application/json',
         },
       });

@@ -35,30 +35,34 @@ export class AuthController {
   async login(@Req() request: RequestWithUser, @Res() response: Response) {
     const id = request.user;
     const payload = await this.authService.login(id);
-    return this.authService.sendAuthResponse(request, response, payload)
+    return this.authService.sendAuthResponse(request, response, payload);
   }
 
   @Post('register')
-  async register(@Body() registerDto: RegisterUserDto, @Req() request: Request, @Res() response: Response) {
+  async register(
+    @Body() registerDto: RegisterUserDto,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
     const user = await this.authService.registerUser(registerDto);
-    return this.authService.sendAuthResponse(request, response, user)
-  } 
+    return this.authService.sendAuthResponse(request, response, user);
+  }
 
   @Post('refresh-token')
   @UseGuards(RefreshTokenGuard)
-  async refreshToken(@Req() request: RefreshTokenRequest, @Res() response: Response) {
-    const {refreshToken, isBrowser} = request;
+  async refreshToken(@Req() request: RefreshTokenRequest) {
+    const { refreshToken, isBrowser } = request;
 
     const payload = await this.authService.refreshToken(refreshToken);
 
     if (isBrowser) {
-      response.cookie('refreshToken', payload.refreshToken, {
+      request.res!.cookie('refreshToken', payload.refreshToken, {
         httpOnly: true,
         sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60,
-      })
+        maxAge: 7 * 24 * 60 * 1000,
+      });
 
-      return response.status(HttpStatus.OK).json({ accessToken: payload.accessToken });
+      return { accessToken: payload.accessToken };
     }
     return payload;
   }
@@ -72,7 +76,10 @@ export class AuthController {
   async googleAuthRedirect(@Req() req, @Res() res: Response) {
     const { refreshToken, accessToken } = await this.authService.findOrCreateUser(req.user);
 
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+    });
     res.redirect(`http://localhost:3000/auth/callback?token=${accessToken}`);
   }
 
@@ -103,9 +110,7 @@ export class AuthController {
       return res.status(HttpStatus.BAD_REQUEST).send('<h1>Invalid reset link</h1>');
     }
 
-    console.log(
-      `🔹 GET: Reset password page opened for userId=${userId}, token=${token}`,
-    );
+    console.log(`🔹 GET: Reset password page opened for userId=${userId}, token=${token}`);
 
     const html = `
       <html>
@@ -145,17 +150,15 @@ export class AuthController {
     console.log(`🟢 POST: Reset password attempt for userId=${body.userId}`);
 
     try {
-      await this.authService.resetPassword(
-        Number(body.userId),
-        body.newPassword,
-        body.token,
-      );
+      await this.authService.resetPassword(Number(body.userId), body.newPassword, body.token);
 
       console.log(`Password changed for userId=${body.userId}`);
 
-      res.status(HttpStatus.OK).send(
-        '<h1>Password successfully changed</h1><p>You can now log in with your new password.</p>',
-      );
+      res
+        .status(HttpStatus.OK)
+        .send(
+          '<h1>Password successfully changed</h1><p>You can now log in with your new password.</p>',
+        );
     } catch (error) {
       console.error(`Error: ${error.message}`);
       res.status(HttpStatus.BAD_REQUEST).send(`<h1>Error</h1><p>${error.message}</p>`);

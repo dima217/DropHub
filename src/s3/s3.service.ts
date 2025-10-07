@@ -44,15 +44,15 @@ export class S3Service implements OnModuleInit {
     }
   }
 
-  async uploadFile(params: PutObjectCommandInput) {
+  async upload(params: PutObjectCommandInput) {
     return this.client.send(new PutObjectCommand(params));
   }
 
-  async getFile(params: GetObjectCommandInput) {
+  async get(params: GetObjectCommandInput) {
     return this.client.send(new GetObjectCommand(params));
   }
 
-  async deleteFile(params: DeleteObjectCommandInput) {
+  async delete(params: DeleteObjectCommandInput) {
     return this.client.send(new DeleteObjectCommand(params));
   }
 }
