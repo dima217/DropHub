@@ -3,7 +3,9 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  registerDecorator,
   ValidationArguments,
+  ValidationOptions,
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
@@ -20,6 +22,18 @@ export class LocationRequiredIfNoTokenConstraint implements ValidatorConstraintI
   defaultMessage(args: ValidationArguments) {
     return 'If "uploadToken" is not provided, one of "roomId" or "storageId" must be present.';
   }
+}
+
+export function MustHaveLocationOrToken(validationOptions?: ValidationOptions) {
+  return function (object: Record<string, any>, propertyName: string) {
+    registerDecorator({
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      constraints: [],
+      validator: LocationRequiredIfNoTokenConstraint,
+    });
+  };
 }
 
 export class UploadToS3Dto {
@@ -46,4 +60,8 @@ export class UploadToS3Dto {
 
   @IsString()
   uploaderIp?: string;
+
+  @MustHaveLocationOrToken()
+  @IsOptional()
+  _locationCheck: any;
 }
