@@ -4,8 +4,8 @@ import { FileController } from './controllers/file.controller';
 import { FileUploadController } from './controllers/file.upload.controller';
 import { FileDownloadController } from './controllers/file.download.controller';
 import { FilesService } from './services/file.service';
-import { FileDownloadService } from './services/file.download.service';
-import { FileUploadService } from './services/file.upload.service';
+import { FileDownloadService } from './services/download/download.service';
+import { FileUploadService } from './services/upload/upload.service';
 
 @Module({
   imports: [S3Module],

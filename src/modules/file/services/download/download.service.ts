@@ -1,10 +1,10 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { S3Service } from 'src/s3/s3.service';
-import { S3ReadStream } from '../utils/s3-read-stream';
+import { S3ReadStream } from '../../utils/s3-read-stream';
 import { Readable } from 'stream';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { FilesService } from './file.service';
+import { FilesService } from '../file.service';
 import { S3_BUCKET_TOKEN } from 'src/s3/s3.tokens';
 
 @Injectable()

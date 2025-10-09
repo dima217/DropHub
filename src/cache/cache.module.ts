@@ -16,7 +16,7 @@ import { RedisModule } from './redis.module';
         ttl: 300,
       }),
     }),
-    RedisModule, 
+    RedisModule,
   ],
   providers: [CacheService],
   exports: [CacheService],

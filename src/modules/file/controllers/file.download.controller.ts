@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Res } from '@nestjs/common';
 import type { Response } from 'express';
-import { FileDownloadService } from '../services/file.download.service';
+import { FileDownloadService } from '../services/download/download.service';
 import { DownloadFileDto } from '../dto/download/download.file.dto';
 import { FilesService } from '../services/file.service';
 

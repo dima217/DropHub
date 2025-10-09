@@ -8,15 +8,19 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { randomUUID } from 'crypto';
-import { S3WriteStream } from '../utils/s3-write-stream';
-import { File, FileDocument } from '../schemas/file.schema';
-import { Room, RoomDocument } from '../../room/schemas/room.schema';
-import { FileUploadStatus, MAX_UPLOAD_SIZE, UPLOAD_STRATEGY } from '../../../constants/interfaces';
+import { S3WriteStream } from '../../utils/s3-write-stream';
+import { File, FileDocument } from '../../schemas/file.schema';
+import { Room, RoomDocument } from '../../../room/schemas/room.schema';
+import {
+  FileUploadStatus,
+  MAX_UPLOAD_SIZE,
+  UPLOAD_STRATEGY,
+} from '../../../../constants/interfaces';
 import { S3Service } from 'src/s3/s3.service';
-import { UploadCompleteDto } from '../dto/upload/upload.complete.dto';
-import { UploadData } from '../interfaces/file-request.interface';
-import { UploadInitMultipartDto } from '../dto/upload/upload.init.multipart.dto';
-import { FilesService } from './file.service';
+import { UploadCompleteDto } from '../../dto/upload/upload.complete.dto';
+import { UploadData } from '../../interfaces/file-request.interface';
+import { UploadInitMultipartDto } from '../../dto/upload/upload.init.multipart.dto';
+import { FilesService } from '../file.service';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { S3_BUCKET_TOKEN } from 'src/s3/s3.tokens';
@@ -24,7 +28,7 @@ import { StorageService } from 'src/modules/storage/services/user.storage.servic
 import { TokenService } from 'src/modules/token/services/token.service';
 
 @Injectable()
-export class FileUploadService {
+export class UploadService {
   constructor(
     private readonly s3Service: S3Service,
     private readonly storageService: StorageService,
@@ -117,62 +121,6 @@ export class FileUploadService {
     await this.fileModel.findOneAndUpdate(
       { _id: roomId, 'uploadSession.uploadId': uploadId },
       { $set: { 'uploadSession.status': 'canceled' } },
-    );
-  }
-
-  // MULTIPART DEMO:
-
-  async initUploading(fileSize: number) {
-    if (!fileSize) {
-      throw new BadRequestException('Filesize is undefined');
-    }
-    if (fileSize > 0) {
-      return fileSize >= MAX_UPLOAD_SIZE ? UPLOAD_STRATEGY.MULTIPART : UPLOAD_STRATEGY.SINGLE;
-    }
-    return null;
-  }
-
-  async initUploadMultipart(params: UploadInitMultipartDto, ip: string) {
-    const init = await this.s3Stream.initMultipart(params.fileName, params.totalParts);
-    if (!init) {
-      throw new BadGatewayException({ error: 'Init multipart failed' });
-    }
-    const fileUploadMeta = await this.fileService.createFileMeta({
-      originalName: params.fileName,
-      key: params.key,
-      size: params.fileSize,
-      mimeType: params.fileType,
-      uploaderIp: ip,
-      uploadSession: {
-        uploadId: init.uploadId,
-        status: FileUploadStatus.IN_PROGRESS,
-        uploadedParts: [],
-      },
-    });
-
-    return { uploadId: init.uploadId, key: init.key, fileId: fileUploadMeta._id };
-  }
-
-  async completeMultipart(params: UploadCompleteDto) {
-    const file = await this.fileService.getFileByUploadId(params.uploadId);
-
-    await this.s3Stream.completeMultipart(file.key, params.uploadId, params.parts);
-
-    await this.roomModel.findByIdAndUpdate(params.roomId, {
-      $push: { files: file._id },
-      $set: { 'uploadSession.status': 'complete' },
-    });
-  }
-
-  async stopUpload(roomId: string, uploadId: string, uploadedParts: number[]) {
-    await this.fileModel.findOneAndUpdate(
-      { _id: roomId, 'uploadSession.uploadId': uploadId },
-      {
-        $set: {
-          'uploadSession.status': 'stopped',
-          'uploadSession.uploadedParts': uploadedParts,
-        },
-      },
     );
   }
 }
