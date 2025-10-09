@@ -12,7 +12,6 @@ import { StorageService } from 'src/modules/storage/services/user.storage.servic
 @Injectable()
 export class FilesService {
   constructor(
-    private readonly storageService: StorageService,
     @InjectModel(File.name) private readonly fileModel: Model<FileDocument>,
     @InjectModel(Room.name) private readonly roomModel: Model<RoomDocument>,
   ) {}
@@ -47,16 +46,6 @@ export class FilesService {
       console.error(`Failed to expire file ${fileId}`, err);
       return null;
     }
-  }
-
-  private async bindFileToRoom(roomId: string, fileId: string) {
-    await this.roomModel.findByIdAndUpdate(roomId, {
-      $push: { files: fileId },
-    });
-  }
-
-  private async bindFileToStorage(storageId: string, userId: number) {
-    await this.storageService.createItemInStorage(storageId, userId);
   }
 
   async getFilesByRoomID(dto: GetFilesDto) {

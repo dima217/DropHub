@@ -16,6 +16,7 @@ import { UploadCompleteDto } from '../dto/upload/upload.complete.dto';
 import { UserIpInterceptor } from 'src/common/interceptors/user.ip.interceptor';
 import { UploadToS3Dto } from '../dto/upload/upload.s3.dto';
 import { AuthGuard } from '@nestjs/passport';
+import type { RequestWithUser } from 'src/types/express';
 
 @Controller('/upload')
 export class FileUploadController {
@@ -24,7 +25,7 @@ export class FileUploadController {
   @Post('auth')
   @UseGuards(AuthGuard)
   @UseInterceptors(UserIpInterceptor)
-  async uploadFileAuthenticated(@Body() s3UploadData: UploadToS3Dto, @Req() req: Request) {
+  async uploadFileAuthenticated(@Body() s3UploadData: UploadToS3Dto, @Req() req: RequestWithUser) {
     if (s3UploadData.uploadToken) {
       throw new BadRequestException('Use the public route for token-based upload.');
     }
@@ -32,6 +33,7 @@ export class FileUploadController {
     const uploadData = {
       ...s3UploadData,
       uploaderIp: req.userIp,
+      userId: req.user.id,
     };
 
     const result = await this.filesUploadService.uploadFileToS3AndSaveMetadata(uploadData);
@@ -49,8 +51,8 @@ export class FileUploadController {
       uploaderIp: req.userIp,
     };
 
-    // const result = await this.filesUploadService.uploadFileByToken(uploadData);
-    // return { success: true, url: result.url, uploadId: result.uploadId };
+    const result = await this.filesUploadService.uploadFileByToken(uploadData);
+    return { success: true, url: result.url, uploadId: result.uploadId };
   }
 
   @Post('init')

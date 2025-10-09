@@ -1,9 +1,6 @@
 import { Body, Controller, Post, Res } from '@nestjs/common';
 import type { Response } from 'express';
-import { File, FileDocument } from '../schemas/file.schema';
 import { FileDownloadService } from '../services/file.download.service';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { DownloadFileDto } from '../dto/download/download.file.dto';
 import { FilesService } from '../services/file.service';
 

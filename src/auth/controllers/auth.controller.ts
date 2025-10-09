@@ -33,7 +33,7 @@ export class AuthController {
   @Post('login')
   @UseGuards(LocalGuard)
   async login(@Req() request: RequestWithUser, @Res() response: Response) {
-    const id = request.user;
+    const id = request.user.id;
     const payload = await this.authService.login(id);
     return this.authService.sendAuthResponse(request, response, payload);
   }

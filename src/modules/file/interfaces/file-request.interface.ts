@@ -5,4 +5,6 @@ export interface UploadData {
   roomId?: string;
   storageId?: string;
   uploaderIp?: string;
+  userId?: number;
+  uploadToken?: string;
 }

@@ -14,11 +14,13 @@ import { FilesService } from './file.service';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { S3_BUCKET_TOKEN } from 'src/s3/s3.tokens';
+import { StorageService } from 'src/modules/storage/services/user.storage.service';
 
 @Injectable()
 export class FileUploadService {
   constructor(
     private readonly s3Service: S3Service,
+    private readonly storageService: StorageService,
     private readonly s3Stream: S3WriteStream,
     private readonly fileService: FilesService,
     @Inject(S3_BUCKET_TOKEN) private readonly bucket: string,
@@ -42,8 +44,18 @@ export class FileUploadService {
     return { url, key };
   }
 
+  private async bindFileToRoom(roomId: string, fileId: string) {
+    await this.roomModel.findByIdAndUpdate(roomId, {
+      $push: { files: fileId },
+    });
+  }
+
+  private async bindFileToStorage(storageId: string, userId: number) {
+    await this.storageService.createItemInStorage(storageId, userId);
+  }
+
   async uploadFileToS3AndSaveMetadata(params: UploadData) {
-    const { fileSize, mimeType, roomId, uploaderIp, originalName } = params;
+    const { fileSize, mimeType, roomId, uploaderIp, originalName, storageId, userId } = params;
     const uploadId = randomUUID();
 
     if (!fileSize || !roomId) {
@@ -64,11 +76,33 @@ export class FileUploadService {
       },
     });
 
-    await this.roomModel.findByIdAndUpdate(roomId, {
-      $push: { files: fileUploadMeta._id },
-    });
+    if (roomId) {
+      await this.bindFileToRoom(roomId, fileUploadMeta._id as string);
+    }
+
+    if (storageId && userId) {
+      await this.bindFileToStorage(storageId, userId);
+    }
 
     return { url, uploadId };
+  }
+
+  async uploadFileByToken(params: UploadData) {
+    const { uploadToken } = params;
+
+    const validationResult = await this.fileService.validateUploadToken(uploadToken);
+
+    if (!validationResult) {
+      throw new UnauthorizedException('Invalid or expired upload token.');
+    }
+    const authenticatedParams = {
+      ...params,
+      roomId: validationResult.roomId,
+      storageId: validationResult.storageId,
+      userId: validationResult.userId,
+    };
+
+    return this.uploadFileToS3AndSaveMetadata(authenticatedParams);
   }
 
   async cancelUpload(roomId: string, uploadId: string) {
