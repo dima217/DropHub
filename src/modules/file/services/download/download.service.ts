@@ -8,7 +8,7 @@ import { FilesService } from '../file.service';
 import { S3_BUCKET_TOKEN } from 'src/s3/s3.tokens';
 
 @Injectable()
-export class FileDownloadService {
+export class DownloadService {
   constructor(
     private readonly s3Service: S3Service,
     private readonly s3ReadStream: S3ReadStream,

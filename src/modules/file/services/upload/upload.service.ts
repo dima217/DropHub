@@ -1,25 +1,12 @@
-import {
-  BadGatewayException,
-  BadRequestException,
-  Inject,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { randomUUID } from 'crypto';
-import { S3WriteStream } from '../../utils/s3-write-stream';
 import { File, FileDocument } from '../../schemas/file.schema';
 import { Room, RoomDocument } from '../../../room/schemas/room.schema';
-import {
-  FileUploadStatus,
-  MAX_UPLOAD_SIZE,
-  UPLOAD_STRATEGY,
-} from '../../../../constants/interfaces';
+import { FileUploadStatus } from '../../../../constants/interfaces';
 import { S3Service } from 'src/s3/s3.service';
-import { UploadCompleteDto } from '../../dto/upload/upload.complete.dto';
 import { UploadData } from '../../interfaces/file-request.interface';
-import { UploadInitMultipartDto } from '../../dto/upload/upload.init.multipart.dto';
 import { FilesService } from '../file.service';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -32,7 +19,6 @@ export class UploadService {
   constructor(
     private readonly s3Service: S3Service,
     private readonly storageService: StorageService,
-    private readonly s3Stream: S3WriteStream,
     private readonly fileService: FilesService,
     private readonly tokenService: TokenService,
     @Inject(S3_BUCKET_TOKEN) private readonly bucket: string,
@@ -102,7 +88,11 @@ export class UploadService {
   async uploadFileByToken(params: UploadData) {
     const { uploadToken } = params;
 
-    const payload = await this.tokenService.validateToken(uploadToken!);
+    if (!uploadToken) {
+      throw new BadRequestException('Upload token is required.');
+    }
+
+    const payload = await this.tokenService.validateToken(uploadToken);
 
     if (!payload) {
       throw new UnauthorizedException('Invalid or expired upload token.');

@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Res } from '@nestjs/common';
 import type { Response } from 'express';
-import { FileDownloadService } from '../services/download/download.service';
+import { DownloadService } from '../services/download/download.service';
 import { DownloadFileDto } from '../dto/download/download.file.dto';
 import { FilesService } from '../services/file.service';
 
@@ -8,7 +8,7 @@ import { FilesService } from '../services/file.service';
 export class FileDownloadController {
   constructor(
     private readonly fileService: FilesService,
-    private readonly fileDownloadService: FileDownloadService,
+    private readonly fileDownloadService: DownloadService,
   ) {}
 
   @Post()

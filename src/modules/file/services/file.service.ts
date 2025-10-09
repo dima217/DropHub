@@ -7,7 +7,6 @@ import { CreateFileMetaDto } from '../dto/create-file-meta.dto';
 import { DeleteFileDto } from '../dto/delete-file.dto';
 import { GetFilesDto } from '../dto/get-files.dto';
 import { FileUploadStatus } from 'src/constants/interfaces';
-import { StorageService } from 'src/modules/storage/services/user.storage.service';
 
 @Injectable()
 export class FilesService {
@@ -28,22 +27,22 @@ export class FilesService {
   }
 
   async deleteFiles(dto: DeleteFileDto) {
-    if (!dto.files || dto.files.length === 0) {
+    if (!dto.uuid || dto.uuid.length === 0) {
       throw new BadRequestException('No files provided');
     }
 
-    const updatedFiles = await Promise.all(dto.files.map((fileId) => this.expireFile(fileId)));
+    const updatedFiles = await Promise.all(dto.uuid.map((fileUuid) => this.expireFile(fileUuid)));
 
     return updatedFiles.filter(Boolean);
   }
 
-  private async expireFile(fileId: string) {
+  private async expireFile(fileUuid: string) {
     try {
       return await this.fileModel
-        .findByIdAndUpdate(fileId, { $set: { expiresAt: new Date() } }, { new: true })
+        .findOneAndUpdate({ uuid: fileUuid }, { $set: { expiresAt: new Date() } }, { new: true })
         .exec();
     } catch (err) {
-      console.error(`Failed to expire file ${fileId}`, err);
+      console.error(`Failed to expire file ${fileUuid}`, err);
       return null;
     }
   }
@@ -55,7 +54,10 @@ export class FilesService {
 
     const room = await this.roomModel
       .findById(dto.roomId)
-      .populate<{ files: FileDocument[] }>('files')
+      .populate<{ files: FileDocument[] }>({
+        path: 'files',
+        select: '-id- -__v-',
+      })
       .exec();
 
     if (!room) {
