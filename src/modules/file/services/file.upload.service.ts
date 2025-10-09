@@ -1,4 +1,10 @@
-import { BadGatewayException, BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadGatewayException,
+  BadRequestException,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { randomUUID } from 'crypto';
@@ -15,6 +21,7 @@ import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { S3_BUCKET_TOKEN } from 'src/s3/s3.tokens';
 import { StorageService } from 'src/modules/storage/services/user.storage.service';
+import { TokenService } from 'src/modules/token/services/token.service';
 
 @Injectable()
 export class FileUploadService {
@@ -23,6 +30,7 @@ export class FileUploadService {
     private readonly storageService: StorageService,
     private readonly s3Stream: S3WriteStream,
     private readonly fileService: FilesService,
+    private readonly tokenService: TokenService,
     @Inject(S3_BUCKET_TOKEN) private readonly bucket: string,
     @InjectModel(File.name) private readonly fileModel: Model<FileDocument>,
     @InjectModel(Room.name) private readonly roomModel: Model<RoomDocument>,
@@ -90,16 +98,16 @@ export class FileUploadService {
   async uploadFileByToken(params: UploadData) {
     const { uploadToken } = params;
 
-    const validationResult = await this.fileService.validateUploadToken(uploadToken);
+    const payload = await this.tokenService.validateToken(uploadToken!);
 
-    if (!validationResult) {
+    if (!payload) {
       throw new UnauthorizedException('Invalid or expired upload token.');
     }
-    const authenticatedParams = {
+
+    const authenticatedParams: UploadData = {
       ...params,
-      roomId: validationResult.roomId,
-      storageId: validationResult.storageId,
-      userId: validationResult.userId,
+      roomId: payload.resourceType === 'room' ? payload.resourceId : undefined,
+      storageId: payload.resourceType === 'storage' ? payload.resourceId : undefined,
     };
 
     return this.uploadFileToS3AndSaveMetadata(authenticatedParams);
