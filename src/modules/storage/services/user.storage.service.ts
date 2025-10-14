@@ -1,24 +1,22 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { UserStorageDocument } from '../schemas/storage.schema';
 import { Model } from 'mongoose';
 import { InjectRepository } from '@nestjs/typeorm';
-import { StoragePermission } from '../entities/storage.permission';
-import { StoragePermissionService } from './storage.permission.service';
-import { StorageRole } from '../interfaces/user.storage-request.interface';
 import { StorageItemService } from './storage.item.service';
+import {
+  AccessRole,
+  Permission,
+  ResourceType,
+} from 'src/modules/permission/entities/permission.entity';
+import { UniversalPermissionService } from 'src/modules/permission/services/storage.permission.service';
 
 @Injectable()
 export class StorageService {
   constructor(
     @InjectModel('UserStorage') private readonly storageModel: Model<UserStorageDocument>,
-    @InjectRepository(StoragePermission)
-    private readonly permissionsService: StoragePermissionService,
+    @InjectRepository(Permission)
+    private readonly permissionService: UniversalPermissionService,
     private readonly storageItemService: StorageItemService,
   ) {}
 
@@ -27,18 +25,19 @@ export class StorageService {
       createdAt: Date.now(),
     });
     const storageId = storage._id.toString();
-    await this.permissionsService.createPermission({
+    await this.permissionService.createPermission({
       userId,
-      role: StorageRole.ADMIN,
-      storageId,
+      resourceType: ResourceType.STORAGE,
+      role: AccessRole.ADMIN,
+      resourceId: storageId,
     });
     storage.save();
   }
 
   async getStoragesByUserId(userId: number) {
-    const permissions = await this.permissionsService.getPermissionsByUserId(userId);
+    const permissions = await this.permissionService.getPermissionsByUserId(userId);
 
-    const storageIds = permissions.map((p) => p.storageId);
+    const storageIds = permissions.map((p) => p.resourceId);
 
     const storages = await this.storageModel.find({
       _id: { $in: storageIds },
@@ -46,25 +45,21 @@ export class StorageService {
 
     return storages.map((s) => ({
       ...s.toObject(),
-      role: permissions.find((p) => p.storageId === s._id.toString())?.role,
+      role: permissions.find((p) => p.resourceId === s._id.toString())?.role,
     }));
   }
 
-  private async verifyUserAccess(userId: number, storageId: string, requiredRoles: StorageRole[]) {
-    const permissions = await this.permissionsService.getPermissionsByUserId(userId);
-
-    const permission = permissions.find((p) => p.storageId === storageId);
-    if (!permission) throw new NotFoundException('Storage not found or no permission.');
-
-    if (!requiredRoles.includes(permission.role)) {
-      throw new ForbiddenException('You do not have access to perform this action.');
-    }
-
-    return true;
+  private async verifyUserAccess(userId: number, storageId: string, requiredRoles: AccessRole[]) {
+    await this.permissionService.verifyUserAccess(
+      userId,
+      storageId,
+      ResourceType.STORAGE,
+      requiredRoles,
+    );
   }
 
   async createItemInStorage(storageId: string, userId: number) {
-    await this.verifyUserAccess(userId, storageId, [StorageRole.ADMIN, StorageRole.WRITE]);
+    await this.verifyUserAccess(userId, storageId, [AccessRole.ADMIN, AccessRole.WRITE]);
 
     const item = await this.storageItemService.createItem(storageId, userId);
     return item;

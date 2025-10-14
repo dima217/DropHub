@@ -29,10 +29,6 @@ export class FileUploadController {
   @UseGuards(AuthGuard)
   @UseInterceptors(UserIpInterceptor)
   async uploadFileAuthenticated(@Body() s3UploadData: UploadToS3Dto, @Req() req: RequestWithUser) {
-    if (s3UploadData.uploadToken) {
-      throw new BadRequestException('Use the public route for token-based upload.');
-    }
-
     const uploadData = {
       ...s3UploadData,
       uploaderIp: req.userIp,
@@ -46,9 +42,6 @@ export class FileUploadController {
   @Post('public')
   @UseInterceptors(UserIpInterceptor)
   async uploadFilePublic(@Body() s3UploadData: UploadToS3Dto, @Req() req: Request) {
-    if (!s3UploadData.uploadToken) {
-      throw new UnauthorizedException('uploadToken is required for public access.');
-    }
     const uploadData = {
       ...s3UploadData,
       uploaderIp: req.userIp,
