@@ -11,14 +11,17 @@ import { FilesService } from '../file.service';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { S3_BUCKET_TOKEN } from 'src/s3/s3.tokens';
-import { StorageService } from 'src/modules/storage/services/user.storage.service';
-import { TokenService } from 'src/modules/token/services/token.service';
+import { StorageService } from 'src/modules/storage/services/storage.service';
+import { TokenService } from 'src/modules/permission/token/services/token.service';
+import { ResourceType } from 'src/modules/permission/entities/permission.entity';
+import { UniversalPermissionService } from 'src/modules/permission/services/permission.service';
 
 @Injectable()
 export class UploadService {
   constructor(
     private readonly s3Service: S3Service,
     private readonly storageService: StorageService,
+    private readonly permissionService: UniversalPermissionService,
     private readonly fileService: FilesService,
     private readonly tokenService: TokenService,
     @Inject(S3_BUCKET_TOKEN) private readonly bucket: string,
@@ -42,22 +45,34 @@ export class UploadService {
     return { url, key };
   }
 
-  private async bindFileToRoom(roomId: string, fileId: string) {
-    await this.roomModel.findByIdAndUpdate(roomId, {
-      $push: { files: fileId },
-    });
-  }
-
-  private async bindFileToStorage(storageId: string, userId: number) {
-    await this.storageService.createItemInStorage(storageId, userId);
+  private async bindFileToResource(resourceId: string, resourceType: ResourceType, fileId: string) {
+    if (resourceType === ResourceType.ROOM) {
+      await this.roomModel.findByIdAndUpdate(resourceId, {
+        $push: { files: fileId },
+      });
+    } else if (resourceType === ResourceType.STORAGE) {
+      await this.storageService.createItemInStorage(resourceId);
+    }
   }
 
   async uploadFileToS3AndSaveMetadata(params: UploadData) {
-    const { fileSize, mimeType, roomId, uploaderIp, originalName, storageId, userId } = params;
+    const { fileSize, mimeType, uploaderIp, originalName, userId } = params;
+
+    const resourceId = params.roomId || params.storageId;
+    const resourceType = params.roomId
+      ? ResourceType.ROOM
+      : params.storageId
+        ? ResourceType.STORAGE
+        : null;
+
+    if (!fileSize || !resourceId || !resourceType) {
+      throw new BadRequestException({ error: 'Missing file details or resource identifier' });
+    }
+
     const uploadId = randomUUID();
 
-    if (!fileSize || !roomId) {
-      throw new BadRequestException({ error: "Missing 'file' or 'roomId'" });
+    if (userId) {
+      await this.permissionService.ensureAdminPermissionExists(resourceId, resourceType, userId);
     }
 
     const { url, key } = await this.getPresignedUrl(originalName, mimeType);
@@ -74,13 +89,7 @@ export class UploadService {
       },
     });
 
-    if (roomId) {
-      await this.bindFileToRoom(roomId, fileUploadMeta._id as string);
-    }
-
-    if (storageId && userId) {
-      await this.bindFileToStorage(storageId, userId);
-    }
+    await this.bindFileToResource(resourceId, resourceType, fileUploadMeta._id as string);
 
     return { url, uploadId };
   }

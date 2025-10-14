@@ -1,13 +1,11 @@
-import { Body, Controller, Post } from "@nestjs/common";
-import { StorageService } from '../services/user.storage.service';
+import { Body, Controller, Post } from '@nestjs/common';
+import { StorageService } from '../services/storage.service';
 
 @Controller('storage')
 export class UserStorageController {
-    constructor(
-        private readonly userStorageService: StorageService,
-    ) {}
+  constructor(private readonly userStorageService: StorageService) {}
 
-    /* @Post("files")
+  /* @Post("files")
     async addFiles(@Body() body: ModifyFilesDto) {
       const { userId, keys } = body;
       return this.userStorageService.addFiles(userId, keys);
@@ -18,9 +16,9 @@ export class UserStorageController {
       const { userId, keys } = body;
       return this.userStorageService.removeFiles(userId, keys);
     } */
-  
-    @Post() 
-    async getUserStorage(@Body() body: { userId: number }) {
-      return this.userStorageService.getStoragesByUserId(body.userId);
-    }    
+
+  @Post()
+  async getUserStorage(@Body() body: { userId: number }) {
+    return this.userStorageService.getStoragesByUserId(body.userId);
+  }
 }

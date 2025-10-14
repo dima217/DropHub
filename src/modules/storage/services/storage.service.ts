@@ -9,7 +9,7 @@ import {
   Permission,
   ResourceType,
 } from 'src/modules/permission/entities/permission.entity';
-import { UniversalPermissionService } from 'src/modules/permission/services/storage.permission.service';
+import { UniversalPermissionService } from 'src/modules/permission/services/permission.service';
 
 @Injectable()
 export class StorageService {
@@ -49,19 +49,8 @@ export class StorageService {
     }));
   }
 
-  private async verifyUserAccess(userId: number, storageId: string, requiredRoles: AccessRole[]) {
-    await this.permissionService.verifyUserAccess(
-      userId,
-      storageId,
-      ResourceType.STORAGE,
-      requiredRoles,
-    );
-  }
-
-  async createItemInStorage(storageId: string, userId: number) {
-    await this.verifyUserAccess(userId, storageId, [AccessRole.ADMIN, AccessRole.WRITE]);
-
-    const item = await this.storageItemService.createItem(storageId, userId);
+  async createItemInStorage(storageId: string) {
+    const item = await this.storageItemService.createItem(storageId);
     return item;
   }
 }

@@ -64,4 +64,15 @@ export class UniversalPermissionService {
 
     return true;
   }
+
+  async ensureAdminPermissionExists(
+    resourceId: string,
+    resourceType: ResourceType,
+    userId: number,
+  ) {
+    await this.verifyUserAccess(userId, resourceId, resourceType, [
+      AccessRole.ADMIN,
+      AccessRole.WRITE,
+    ]);
+  }
 }

@@ -6,7 +6,7 @@ import { FileDownloadController } from './controllers/file.download.controller';
 import { FilesService } from './services/file.service';
 import { DownloadService } from './services/download/download.service';
 import { UploadService } from './services/upload/upload.service';
-import { StorageService } from '../storage/services/user.storage.service';
+import { StorageService } from '../storage/services/storage.service';
 
 @Module({
   imports: [S3Module, StorageService],
