@@ -77,9 +77,9 @@ export class FilesService {
       throw new NotFoundException("Room hasn't been found");
     }
 
-    const validFiles = room.files.filter((file) => !file.expiresAt || file.expiresAt > new Date());
+    room.files = room.files.filter((file) => !file.expiresAt || file.expiresAt > new Date());
 
-    return validFiles;
+    return room;
   }
 
   async getFileByUuid(fileId: string) {

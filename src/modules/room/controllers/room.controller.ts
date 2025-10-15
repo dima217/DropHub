@@ -9,6 +9,14 @@ import { CreateRoomDto } from '../dto/create-room.dro';
 export class RoomController {
   constructor(private readonly roomService: RoomService) {}
 
+  @UseGuards(AuthGuard)
+  @Post('my-list')
+  async getMyRooms(@Req() req: RequestWithUser) {
+    const userId = req.user.id;
+    const rooms = await this.roomService.getRoomsByUserID(userId);
+    return { success: true, rooms };
+  }
+
   @Post()
   @UseGuards(AuthGuard)
   async createRoom(@Req() req: RequestWithUser, @Body() body: CreateRoomDto) {

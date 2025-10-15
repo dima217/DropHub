@@ -28,6 +28,31 @@ export class RoomService {
     private readonly permissionService: UniversalPermissionService,
   ) {}
 
+  async getRoomsByUserID(userId: number) {
+    const permissions = await this.permissionService.getPermissionsByUserIdAndType(
+      userId,
+      ResourceType.ROOM,
+    );
+
+    if (permissions.length === 0) {
+      return [];
+    }
+
+    const roomIds = permissions.map((p) => p.resourceId);
+
+    const rooms = await this.roomModel
+      .find({
+        _id: { $in: roomIds },
+      })
+      .select('-files -__v')
+      .lean();
+
+    return rooms.map((room) => ({
+      ...room,
+      role: permissions.find((p) => p.resourceId === room._id.toString())?.role,
+    }));
+  }
+
   async createRoom(params: AuthenticationCreateRoomParams) {
     try {
       const newRoom = new this.roomModel({
