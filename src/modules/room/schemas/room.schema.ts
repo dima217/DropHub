@@ -16,10 +16,10 @@ export class Room {
   createdAt: Date;
 
   @Prop({ type: [String], default: [] })
-  participants: string[]; 
+  participants: string[];
 
-  @Prop({ type: String, required: true })
-  ownerId: string;
+  @Prop({ type: String })
+  owner?: string;
 
   @Prop({
     type: Date,

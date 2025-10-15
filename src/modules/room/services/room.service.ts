@@ -16,6 +16,11 @@ interface AuthenticationDeleteRoomParams {
   roomId: string;
 }
 
+interface AuthenticationCreateRoomParams {
+  userId: number;
+  username?: string;
+}
+
 @Injectable()
 export class RoomService {
   constructor(
@@ -23,18 +28,19 @@ export class RoomService {
     private readonly permissionService: UniversalPermissionService,
   ) {}
 
-  async createRoom(userId: number) {
+  async createRoom(params: AuthenticationCreateRoomParams) {
     try {
       const newRoom = new this.roomModel({
         createdAt: new Date(),
         maxBytes: 5000,
+        owner: params.username ?? '',
       });
 
       const savedRoom = await newRoom.save();
       const roomId = savedRoom.id.toString();
 
       await this.permissionService.createPermission({
-        userId,
+        userId: params.userId,
         resourceType: ResourceType.ROOM,
         resourceId: roomId,
         role: AccessRole.ADMIN,

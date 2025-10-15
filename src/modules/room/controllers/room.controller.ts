@@ -3,6 +3,7 @@ import type { DeleteRoomBody } from '../interfaces/room-request.interface';
 import { RoomService } from '../services/room.service';
 import { AuthGuard } from '@nestjs/passport';
 import type { RequestWithUser } from 'src/types/express';
+import { CreateRoomDto } from '../dto/create-room.dro';
 
 @Controller('/room')
 export class RoomController {
@@ -10,8 +11,12 @@ export class RoomController {
 
   @Post()
   @UseGuards(AuthGuard)
-  async createRoom(@Req() req: RequestWithUser) {
-    return this.roomService.createRoom(req.user.id);
+  async createRoom(@Req() req: RequestWithUser, @Body() body: CreateRoomDto) {
+    const createData = {
+      userId: req.user.id,
+      username: body.username,
+    };
+    return this.roomService.createRoom(createData);
   }
 
   @Delete()
