@@ -5,12 +5,19 @@ import { File, FileDocument } from '../schemas/file.schema';
 import { Room, RoomDocument } from '../../room/schemas/room.schema';
 import { CreateFileMetaDto } from '../dto/create-file-meta.dto';
 import { DeleteFileDto } from '../dto/delete-file.dto';
-import { GetFilesDto } from '../dto/get-files.dto';
 import { FileUploadStatus } from 'src/constants/interfaces';
+import { UniversalPermissionService } from 'src/modules/permission/services/permission.service';
+import { AccessRole, ResourceType } from 'src/modules/permission/entities/permission.entity';
+
+interface AuthenticatedGettingFilesByRoomParams {
+  roomId: string;
+  userId: number;
+}
 
 @Injectable()
 export class FilesService {
   constructor(
+    private readonly permissionService: UniversalPermissionService,
     @InjectModel(File.name) private readonly fileModel: Model<FileDocument>,
     @InjectModel(Room.name) private readonly roomModel: Model<RoomDocument>,
   ) {}
@@ -47,13 +54,19 @@ export class FilesService {
     }
   }
 
-  async getFilesByRoomID(dto: GetFilesDto) {
-    if (!dto.roomId) {
+  async getFilesByRoomID(params: AuthenticatedGettingFilesByRoomParams) {
+    if (!params.roomId) {
       throw new BadRequestException('No roomId provided');
     }
 
+    await this.permissionService.verifyUserAccess(params.userId, params.roomId, ResourceType.ROOM, [
+      AccessRole.ADMIN,
+      AccessRole.READ,
+      AccessRole.WRITE,
+    ]);
+
     const room = await this.roomModel
-      .findById(dto.roomId)
+      .findById(params.roomId)
       .populate<{ files: FileDocument[] }>({
         path: 'files',
         select: '-id- -__v-',

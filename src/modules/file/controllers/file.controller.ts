@@ -1,7 +1,9 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { FilesService } from '../services/file.service';
 import { DeleteFileDto } from '../dto/delete-file.dto';
 import { GetFilesDto } from '../dto/get-files.dto';
+import { AuthGuard } from '@nestjs/passport';
+import type { RequestWithUser } from 'src/types/express';
 
 @Controller('file')
 export class FileController {
@@ -13,9 +15,14 @@ export class FileController {
     return { success: true, updated: results.length };
   }
 
+  @UseGuards(AuthGuard)
   @Post('get-files')
-  async getFiles(@Body() dto: GetFilesDto) {
-    const files = await this.filesService.getFilesByRoomID(dto);
+  async getFiles(@Body() dto: GetFilesDto, @Req() req: RequestWithUser) {
+    const filesDownloadData = {
+      userId: req.user.id,
+      roomId: dto.roomId,
+    };
+    const files = await this.filesService.getFilesByRoomID(filesDownloadData);
     return files;
   }
 }
