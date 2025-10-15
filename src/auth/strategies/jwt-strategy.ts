@@ -5,7 +5,6 @@ import { ConfigService } from '@nestjs/config';
 import { IUser } from '../types/types';
 import { UsersService } from '../../modules/user/services/user.service';
 import { CacheService } from 'src/cache/cache.service';
-import { cookieOrHeaderExtractor } from '../common/utils/cookie-or-header.extractor';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {

@@ -1,15 +1,29 @@
-import { Injectable, HttpException, HttpStatus } from "@nestjs/common";
-import { Model } from "mongoose";
-import { InjectModel } from "@nestjs/mongoose";
-import { Room, RoomDocument } from "../schemas/room.schema";
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+import { Room, RoomDocument } from '../schemas/room.schema';
+import { UniversalPermissionService } from 'src/modules/permission/services/permission.service';
+import { AccessRole, ResourceType } from 'src/modules/permission/entities/permission.entity';
+
+interface AuthenticationDeleteRoomParams {
+  userId: number;
+  roomId: string;
+}
 
 @Injectable()
 export class RoomService {
   constructor(
-    @InjectModel(Room.name) private readonly roomModel: Model<RoomDocument>
+    @InjectModel(Room.name) private readonly roomModel: Model<RoomDocument>,
+    private readonly permissionService: UniversalPermissionService,
   ) {}
 
-  async createRoom() {
+  async createRoom(userId: number) {
     try {
       const newRoom = new this.roomModel({
         createdAt: new Date(),
@@ -17,43 +31,52 @@ export class RoomService {
       });
 
       const savedRoom = await newRoom.save();
+      const roomId = savedRoom.id.toString();
+
+      await this.permissionService.createPermission({
+        userId,
+        resourceType: ResourceType.ROOM,
+        resourceId: roomId,
+        role: AccessRole.ADMIN,
+      });
 
       return {
         success: true,
-        roomId: savedRoom.id.toString(),
+        roomId,
       };
     } catch (err) {
-      throw new HttpException(
-        { error: "Could not create room", details: err?.message ?? err },
-        HttpStatus.INTERNAL_SERVER_ERROR
-      );
+      throw new InternalServerErrorException('Failed to create room', { cause: err });
     }
   }
 
-  async deleteRoom(roomId: string) {
-    if (!roomId) {
-      throw new HttpException(
-        { error: "No roomId provided" },
-        HttpStatus.BAD_REQUEST
-      );
+  async deleteRoom(params: AuthenticationDeleteRoomParams) {
+    if (!params.roomId) {
+      throw new BadRequestException('Room ID is required.');
     }
 
+    await this.permissionService.verifyUserAccess(params.userId, params.roomId, ResourceType.ROOM, [
+      AccessRole.ADMIN,
+    ]);
+
     try {
-      const deletedRoom = await this.roomModel.findByIdAndDelete(roomId);
+      const deletedRoom = await this.roomModel.findByIdAndDelete(params.roomId);
 
       if (!deletedRoom) {
-        throw new HttpException(
-          { error: "Room not found" },
-          HttpStatus.NOT_FOUND
-        );
+        throw new NotFoundException('Room not found.');
       }
 
-      return { message: "Room deleted successfully", roomId };
+      await this.permissionService.deletePermissionsByResource(params.roomId, ResourceType.ROOM);
+
+      return { message: 'Room deleted successfully' };
     } catch (err) {
-      throw new HttpException(
-        { error: "Failed to delete room", details: err?.message ?? err },
-        HttpStatus.INTERNAL_SERVER_ERROR
-      );
+      if (
+        err instanceof NotFoundException ||
+        err instanceof ForbiddenException ||
+        err instanceof BadRequestException
+      ) {
+        throw err;
+      }
+      throw new InternalServerErrorException('Failed to delete room', { cause: err });
     }
   }
 }
