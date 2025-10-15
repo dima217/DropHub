@@ -1,5 +1,3 @@
-// src/token/token.module.ts
-
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { TokenService } from './services/token.service';

@@ -1,6 +1,24 @@
 import { User } from 'src/modules/user/entities/user.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { AccessRole, ResourceType } from '../interfaces/user.storage-request.interface';
+
+export enum AccessRole {
+  ADMIN = 'admin',
+  WRITE = 'write',
+  READ = 'read',
+}
+
+export interface PermissionData {
+  role: AccessRole;
+  userId: number;
+  storageId: string;
+  resourceType: ResourceType;
+}
+
+export enum ResourceType {
+  ROOM = 'room',
+  STORAGE = 'storage',
+  FILE = 'file',
+}
 
 @Entity()
 export class Permission {

@@ -11,7 +11,7 @@ import * as cookieParser from 'cookie-parser';
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter());
 
-  app.connectMicroservice<RmqOptions>({
+  /* app.connectMicroservice<RmqOptions>({
     transport: Transport.RMQ,
     options: {
       urls: [`amqp://rabbitmq:5672`],
@@ -29,7 +29,7 @@ async function bootstrap() {
     },
   });
 
-  await app.startAllMicroservices();
+  await app.startAllMicroservices(); */
 
   app.use(cookieParser);
   app.useGlobalPipes(new ValidationPipe());

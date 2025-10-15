@@ -12,7 +12,7 @@ import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { S3_BUCKET_TOKEN } from 'src/s3/s3.tokens';
 import { StorageService } from 'src/modules/storage/services/storage.service';
-import { TokenService } from 'src/modules/permission/token/services/token.service';
+import { TokenService } from 'src/modules/token/services/token.service';
 import { ResourceType } from 'src/modules/permission/entities/permission.entity';
 import { UniversalPermissionService } from 'src/modules/permission/services/permission.service';
 
