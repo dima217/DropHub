@@ -69,6 +69,24 @@ export class FilesService {
     return validFiles;
   }
 
+  async getFileByUuid(fileId: string) {
+    const fileDoc = await this.fileModel.findById(fileId).lean();
+
+    if (!fileDoc) {
+      throw new NotFoundException({ error: 'File does not exist' });
+    }
+
+    if (fileDoc.expiresAt && fileDoc.expiresAt <= new Date()) {
+      throw new NotFoundException({ error: 'File has expired' });
+    }
+
+    if (fileDoc.uploadSession.status !== FileUploadStatus.COMPLETE) {
+      throw new BadRequestException({ error: 'File upload not completed' });
+    }
+
+    return fileDoc;
+  }
+
   async getFileByUploadId(uploadId: string) {
     const fileDoc = await this.fileModel.findOne({ 'uploadSession.uploadId': uploadId }).lean();
 

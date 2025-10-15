@@ -1,8 +1,8 @@
 import { IsString } from 'class-validator';
 
-export class DownloadFileDto {
+export class DownloadFileMultipartDto {
   @IsString()
-  fileUuid: string;
+  uploadId: string;
 
   @IsString()
   downloadToken?: string;

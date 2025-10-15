@@ -1,8 +1,11 @@
-import { Body, Controller, Post, Res } from '@nestjs/common';
+import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
 import type { Response } from 'express';
 import { DownloadService } from '../services/download/download.service';
 import { DownloadFileDto } from '../dto/download/download.file.dto';
 import { FilesService } from '../services/file.service';
+import { AuthGuard } from '@nestjs/passport';
+import type { RequestWithUser } from 'src/types/express';
+import { DownloadFileMultipartDto } from '../dto/download/download.file.multipart';
 
 @Controller('/download')
 export class FileDownloadController {
@@ -11,8 +14,8 @@ export class FileDownloadController {
     private readonly fileDownloadService: DownloadService,
   ) {}
 
-  @Post()
-  async downloadFile(@Body() body: DownloadFileDto, @Res() res: Response) {
+  @Post('/stream')
+  async downloadFile(@Body() body: DownloadFileMultipartDto, @Res() res: Response) {
     const fileDoc = await this.fileService.getFileByUploadId(body.uploadId);
 
     const mimeType = fileDoc?.mimeType || 'application/octet-stream'; // fallback
@@ -25,9 +28,20 @@ export class FileDownloadController {
     stream.pipe(res);
   }
 
-  @Post('url')
+  @Post('url-public')
   async downloadFileByURL(@Body() body: DownloadFileDto) {
-    const url = this.fileDownloadService.getDownloadLink(body.uploadId);
+    const url = this.fileDownloadService.downloadFileByToken(body);
+    return { url };
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('/url-private')
+  async downloadFileByURLPrivate(@Body() body: DownloadFileDto, @Req() req: RequestWithUser) {
+    const downloadData = {
+      fileUuid: body.fileUuid,
+      userId: req.user.id,
+    };
+    const url = this.fileDownloadService.getDownloadLinkAuthenticated(downloadData);
     return { url };
   }
 }
