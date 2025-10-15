@@ -55,4 +55,16 @@ export class S3Service implements OnModuleInit {
   async delete(params: DeleteObjectCommandInput) {
     return this.client.send(new DeleteObjectCommand(params));
   }
+
+  createUploadCommand(params: PutObjectCommandInput): PutObjectCommand {
+    return new PutObjectCommand(params);
+  }
+
+  createGetResourceCommand(params: GetObjectCommandInput): GetObjectCommand {
+    return new GetObjectCommand(params);
+  }
+
+  createDeleteCommand(params: DeleteObjectCommandInput): DeleteObjectCommand {
+    return new DeleteObjectCommand(params);
+  }
 }
