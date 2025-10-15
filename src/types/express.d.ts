@@ -1,11 +1,12 @@
+import { UserRole } from 'src/modules/user/entities/user.entity';
 import { IUser, JUser } from '.././auth/types/types';
 
 import { Request } from 'express';
 
 declare module 'express' {
-    export interface Request {
-      userIp?: string;
-    }
+  export interface Request {
+    userIp?: string;
+  }
 }
 
 interface AuthRequest extends Request {
@@ -15,7 +16,10 @@ interface JwtAuthRequest extends Request {
   user: JUser;
 }
 interface RequestWithUser extends Request {
-  user: number; 
+  user: {
+    id: number;
+    role: UserRole;
+  };
 }
 interface RefreshTokenRequest extends Request {
   refreshToken: string;

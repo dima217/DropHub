@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { IsBoolean, IsEnum } from 'class-validator';
 import { Profile } from './profile.entity';
-import { StoragePermission } from 'src/modules/storage/entities/storage.permission';
+import { StoragePermission } from 'src/modules/permission/entities/permission.entity';
 
 export enum UserRole {
   USER = 'user',

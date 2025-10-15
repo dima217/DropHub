@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Post } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { FilesService } from '../services/file.service';
 import { DeleteFileDto } from '../dto/delete-file.dto';
 import { GetFilesDto } from '../dto/get-files.dto';
@@ -7,7 +7,7 @@ import { GetFilesDto } from '../dto/get-files.dto';
 export class FileController {
   constructor(private readonly filesService: FilesService) {}
 
-  @Delete()
+  @Post()
   async deleteFile(@Body() dto: DeleteFileDto) {
     const results = await this.filesService.deleteFiles(dto);
     return { success: true, updated: results.length };

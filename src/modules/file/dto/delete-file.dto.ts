@@ -4,5 +4,5 @@ export class DeleteFileDto {
   @IsArray()
   @ArrayNotEmpty()
   @IsString({ each: true })
-  files: string[];
+  uuid: string[];
 }

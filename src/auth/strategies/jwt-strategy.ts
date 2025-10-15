@@ -12,7 +12,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
-    private readonly cacheService: CacheService
+    private readonly cacheService: CacheService,
   ) {
     const secretOrKey = configService.get<string>('JWT_SECRET');
     if (!secretOrKey) {
@@ -27,16 +27,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(user: IUser) {
-    const cacheKey = `user:${user.id}`
+    const cacheKey = `user:${user.id}`;
 
     const fullUser = await this.cacheService.cacheWrapper(cacheKey, async () => {
       return await this.usersService.getUserById(user.id);
     });
-    
+
     if (fullUser?.isBanned === true) {
       throw new UnauthorizedException('Your account has been banned.');
     }
-
-    return {id: user.id, role: fullUser?.role };
+    return { id: user.id, role: fullUser?.role };
   }
 }
