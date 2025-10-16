@@ -27,7 +27,7 @@ export class FileUploadController {
     };
 
     const result = await this.uploadService.uploadFileToS3AndSaveMetadata(uploadData);
-    return { success: true, url: result.url, uploadId: result.uploadId };
+    return { success: true, url: result.url };
   }
 
   @Post('public')
@@ -39,7 +39,7 @@ export class FileUploadController {
     };
 
     const result = await this.uploadService.uploadFileByToken(uploadData);
-    return { success: true, url: result.url, uploadId: result.uploadId };
+    return { success: true, url: result.url };
   }
 
   @Post('multipart/init')

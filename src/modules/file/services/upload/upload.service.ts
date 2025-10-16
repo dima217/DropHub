@@ -1,10 +1,8 @@
 import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { randomUUID } from 'crypto';
 import { File, FileDocument } from '../../schemas/file.schema';
 import { Room, RoomDocument } from '../../../room/schemas/room.schema';
-import { FileUploadStatus } from '../../../../constants/interfaces';
 import { S3Service } from 'src/s3/s3.service';
 import { UploadData } from '../../interfaces/file-request.interface';
 import { FilesService } from '../file.service';
@@ -69,8 +67,6 @@ export class UploadService {
       throw new BadRequestException({ error: 'Missing file details or resource identifier' });
     }
 
-    const uploadId = randomUUID();
-
     if (userId) {
       await this.permissionService.ensureAdminPermissionExists(resourceId, resourceType, userId);
     }
@@ -83,15 +79,11 @@ export class UploadService {
       size: fileSize,
       mimeType: mimeType,
       uploaderIp,
-      uploadSession: {
-        uploadId: uploadId,
-        status: FileUploadStatus.IN_PROGRESS,
-      },
     });
 
     await this.bindFileToResource(resourceId, resourceType, fileUploadMeta._id as string);
 
-    return { url, uploadId };
+    return { url };
   }
 
   async uploadFileByToken(params: UploadData) {

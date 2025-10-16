@@ -69,7 +69,8 @@ export class FilesService {
       .findById(params.roomId)
       .populate<{ files: FileDocument[] }>({
         path: 'files',
-        select: '-id- -__v-',
+        select: '-__v-',
+        options: { lean: true },
       })
       .exec();
 

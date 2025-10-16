@@ -15,7 +15,6 @@ import { TokenService } from 'src/modules/token/services/token.service';
 import { AccessRole, ResourceType } from '../../../permission/entities/permission.entity';
 import { Readable } from 'stream';
 import { S3ReadStream } from '../../utils/s3-read-stream';
-import { DownloadFileByTokenDto } from '../../dto/download/download.file.token.dto';
 
 interface AuthenticatedDownloadParams {
   fileId: string;
@@ -46,13 +45,13 @@ export class DownloadService {
     return getSignedUrl(this.s3Service.client, command, { expiresIn: 60 });
   }
 
-  private async verifyAndGetFile(fileUuid: string, userId?: number) {
-    const file = await this.fileService.getFileByUuid(fileUuid);
+  private async verifyAndGetFile(fileId: string, userId?: number) {
+    const file = await this.fileService.getFileByUuid(fileId);
     if (!file) {
       throw new NotFoundException('File does not exist.');
     }
     if (userId !== undefined) {
-      await this.permissionService.verifyUserAccess(userId, fileUuid, ResourceType.FILE, [
+      await this.permissionService.verifyUserAccess(userId, fileId, ResourceType.FILE, [
         AccessRole.ADMIN,
         AccessRole.READ,
         AccessRole.WRITE,
@@ -83,8 +82,8 @@ export class DownloadService {
       throw new UnauthorizedException('Invalid or expired download token.');
     }
 
-    const fileUuid = payload.resourceId;
-    const file = await this.verifyAndGetFile(fileUuid);
+    const fileId = payload.resourceId;
+    const file = await this.verifyAndGetFile(fileId);
 
     return this.generatePresignedUrl(file.key);
   }
