@@ -12,14 +12,18 @@ import { FilesService } from '../file.service';
 import { S3_BUCKET_TOKEN } from 'src/s3/s3.tokens';
 import { UniversalPermissionService } from 'src/modules/permission/services/permission.service';
 import { TokenService } from 'src/modules/token/services/token.service';
-import { DownloadFileDto } from '../../dto/download/download.file.dto';
 import { AccessRole, ResourceType } from '../../../permission/entities/permission.entity';
 import { Readable } from 'stream';
 import { S3ReadStream } from '../../utils/s3-read-stream';
+import { DownloadFileByTokenDto } from '../../dto/download/download.file.token.dto';
 
 interface AuthenticatedDownloadParams {
-  fileUuid: string;
+  fileId: string;
   userId: number;
+}
+
+interface DownloadByTokenParams {
+  downloadToken: string;
 }
 
 @Injectable()
@@ -59,14 +63,14 @@ export class DownloadService {
   }
 
   async getDownloadLinkAuthenticated(params: AuthenticatedDownloadParams): Promise<string> {
-    const { fileUuid, userId } = params;
+    const { fileId, userId } = params;
 
-    const file = await this.verifyAndGetFile(fileUuid, userId);
+    const file = await this.verifyAndGetFile(fileId, userId);
 
     return this.generatePresignedUrl(file.key);
   }
 
-  async downloadFileByToken(params: DownloadFileDto): Promise<string> {
+  async downloadFileByToken(params: DownloadByTokenParams): Promise<string> {
     const { downloadToken } = params;
 
     if (!downloadToken) {

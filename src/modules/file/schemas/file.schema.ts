@@ -7,9 +7,6 @@ export type FileDocument = File & Document;
 
 @Schema({ timestamps: true })
 export class File {
-  @Prop({ required: true, unique: true, default: uuidv4 })
-  uuid: string;
-
   @Prop({ required: true })
   originalName: string;
 

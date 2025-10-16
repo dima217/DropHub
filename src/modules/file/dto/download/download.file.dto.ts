@@ -2,8 +2,5 @@ import { IsString } from 'class-validator';
 
 export class DownloadFileDto {
   @IsString()
-  fileUuid: string;
-
-  @IsString()
-  downloadToken?: string;
+  fileId: string;
 }
