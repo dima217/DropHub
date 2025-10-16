@@ -39,7 +39,6 @@ export class FilesService {
     }
 
     const updatedFiles = await Promise.all(dto.fileIds.map((fileId) => this.expireFile(fileId)));
-
     return updatedFiles.filter(Boolean);
   }
 
@@ -83,7 +82,7 @@ export class FilesService {
     return room;
   }
 
-  async getFileByUuid(fileId: string) {
+  async getFileById(fileId: string) {
     const fileDoc = await this.fileModel.findById(fileId).lean();
 
     if (!fileDoc) {

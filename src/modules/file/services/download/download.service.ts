@@ -46,7 +46,7 @@ export class DownloadService {
   }
 
   private async verifyAndGetFile(fileId: string, userId?: number) {
-    const file = await this.fileService.getFileByUuid(fileId);
+    const file = await this.fileService.getFileById(fileId);
     if (!file) {
       throw new NotFoundException('File does not exist.');
     }
@@ -97,8 +97,8 @@ export class DownloadService {
   }
 
   // deprecated
-  async getDownloadLink(fileUuid: string): Promise<string> {
-    const file = await this.fileService.getFileByUuid(fileUuid);
+  async getDownloadLink(fileId: string): Promise<string> {
+    const file = await this.fileService.getFileById(fileId);
     return this.generatePresignedUrl(file.key);
   }
 }
