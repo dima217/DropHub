@@ -34,22 +34,22 @@ export class FilesService {
   }
 
   async deleteFiles(dto: DeleteFileDto) {
-    if (!dto.uuid || dto.uuid.length === 0) {
+    if (!dto.fileIds || dto.fileIds.length === 0) {
       throw new BadRequestException('No files provided');
     }
 
-    const updatedFiles = await Promise.all(dto.uuid.map((fileUuid) => this.expireFile(fileUuid)));
+    const updatedFiles = await Promise.all(dto.fileIds.map((fileId) => this.expireFile(fileId)));
 
     return updatedFiles.filter(Boolean);
   }
 
-  private async expireFile(fileUuid: string) {
+  private async expireFile(fileId: string) {
     try {
       return await this.fileModel
-        .findOneAndUpdate({ uuid: fileUuid }, { $set: { expiresAt: new Date() } }, { new: true })
+        .findByIdAndUpdate(fileId, { $set: { expiresAt: new Date() } }, { new: true })
         .exec();
     } catch (err) {
-      console.error(`Failed to expire file ${fileUuid}`, err);
+      console.error(`Failed to expire file ${fileId}`, err);
       return null;
     }
   }

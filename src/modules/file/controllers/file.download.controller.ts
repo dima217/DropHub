@@ -29,7 +29,7 @@ export class FileDownloadController {
     stream.pipe(res);
   }
 
-  @Post('url-public')
+  @Post('/url-public')
   async downloadFileByURL(@Body() body: DownloadFileByTokenDto) {
     const url = this.fileDownloadService.downloadFileByToken(body);
     return { url };
