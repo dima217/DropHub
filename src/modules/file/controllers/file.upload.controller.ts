@@ -4,10 +4,12 @@ import { UploadService } from '../services/upload/upload.service';
 import { UploadInitMultipartDto } from '../dto/upload/upload.init.multipart.dto';
 import { UploadCompleteDto } from '../dto/upload/upload.complete.dto';
 import { UserIpInterceptor } from 'src/common/interceptors/user.ip.interceptor';
-import { UploadToS3Dto } from '../dto/upload/upload.s3.dto';
 import { AuthGuard } from '@nestjs/passport';
 import type { RequestWithUser } from 'src/types/express';
 import { MultipartUploadService } from '../services/upload/multipart.upload.service';
+import { UploadByTokenDto } from '../dto/upload/upload.token.dto';
+import { UploadToRoomDto } from '../dto/upload/upload.room.dto';
+import { UploadToStorageDto } from '../dto/upload/upload.storage.dto';
 
 @Controller('/upload')
 export class FileUploadController {
@@ -16,23 +18,43 @@ export class FileUploadController {
     private readonly multipartUploadService: MultipartUploadService,
   ) {}
 
-  @Post('auth')
+  @Post('auth/room')
   @UseGuards(AuthGuard)
   @UseInterceptors(UserIpInterceptor)
-  async uploadFileAuthenticated(@Body() s3UploadData: UploadToS3Dto, @Req() req: RequestWithUser) {
+  async uploadFileToRoomAuthenticated(
+    @Body() s3UploadData: UploadToRoomDto,
+    @Req() req: RequestWithUser,
+  ) {
     const uploadData = {
       ...s3UploadData,
       uploaderIp: req.userIp,
       userId: req.user.id,
     };
 
-    const result = await this.uploadService.uploadFileToS3AndSaveMetadata(uploadData);
+    const result = await this.uploadService.uploadFileToRoom(uploadData);
+    return { success: true, url: result.url };
+  }
+
+  @Post('auth/storage')
+  @UseGuards(AuthGuard)
+  @UseInterceptors(UserIpInterceptor)
+  async uploadFileToStorageAuthenticated(
+    @Body() s3UploadData: UploadToStorageDto,
+    @Req() req: RequestWithUser,
+  ) {
+    const uploadData = {
+      ...s3UploadData,
+      uploaderIp: req.userIp,
+      userId: req.user.id,
+    };
+
+    const result = await this.uploadService.uploadFileToStorage(uploadData);
     return { success: true, url: result.url };
   }
 
   @Post('public')
   @UseInterceptors(UserIpInterceptor)
-  async uploadFilePublic(@Body() s3UploadData: UploadToS3Dto, @Req() req: Request) {
+  async uploadFilePublic(@Body() s3UploadData: UploadByTokenDto, @Req() req: Request) {
     const uploadData = {
       ...s3UploadData,
       uploaderIp: req.userIp,

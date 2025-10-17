@@ -80,6 +80,12 @@ export class RoomService {
     }
   }
 
+  async bindFileToRoom(roomId: string, fileId: string) {
+    await this.roomModel.findByIdAndUpdate(roomId, {
+      $push: { files: fileId },
+    });
+  }
+
   async deleteRoom(params: AuthenticationDeleteRoomParams) {
     if (!params.roomId) {
       throw new BadRequestException('Room ID is required.');
