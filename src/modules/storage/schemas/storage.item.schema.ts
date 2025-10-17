@@ -3,6 +3,8 @@ import { Types } from 'mongoose';
 
 @Schema({ collection: 'StorageItem', timestamps: true })
 export class StorageItem {
+  _id: Types.ObjectId;
+
   @Prop({ type: String })
   userId: string;
 

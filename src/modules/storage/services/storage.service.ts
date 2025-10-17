@@ -34,6 +34,10 @@ interface CreateItemParams {
   userId: number;
 }
 
+interface ItemWithChildren extends StorageItem {
+  children?: StorageItem[];
+}
+
 @Injectable()
 export class StorageService {
   constructor(
@@ -57,6 +61,30 @@ export class StorageService {
     return storage;
   }
 
+  async createItemInStorage(params: CreateItemParams): Promise<StorageItem> {
+    const { storageId, userId, name, isDirectory, parentId, fileId } = params;
+
+    await this.permissionService.verifyUserAccess(userId, storageId, ResourceType.STORAGE, [
+      AccessRole.ADMIN,
+      AccessRole.WRITE,
+    ]);
+
+    if (!isDirectory && !fileId) {
+      throw new BadRequestException('File items must have a fileId.');
+    }
+
+    const item = await this.storageItemService.createItem(
+      name,
+      isDirectory,
+      parentId,
+      fileId,
+      userId.toString(),
+      storageId,
+    );
+
+    return item;
+  }
+
   async getStoragesByUserId(userId: number) {
     const permissions = await this.permissionService.getPermissionsByUserId(userId);
 
@@ -72,10 +100,11 @@ export class StorageService {
     }));
   }
 
-  async getStorageItemByToken(token: string) {
+  async getStorageItemByToken(token: string): Promise<StorageItem> {
     if (!token) {
       throw new UnauthorizedException('Token is required.');
     }
+
     const payload = await this.tokenService.validateToken(token);
 
     if (payload.resourceType !== 'storage') {
@@ -87,10 +116,17 @@ export class StorageService {
     }
 
     const itemId = payload.resourceId;
-
     const item = await this.storageItemService.getItemById(itemId);
 
-    return item;
+    const responseItem: ItemWithChildren = { ...item };
+
+    if (item.isDirectory) {
+      const children = await this.storageItemService.getItemsByParent(item._id.toString());
+
+      responseItem.children = children;
+    }
+
+    return responseItem;
   }
 
   private async verifyUserAccess(userId: number, storageId: string, requiredRoles: AccessRole[]) {
@@ -141,29 +177,5 @@ export class StorageService {
     await this.storageItemService.deleteItem(params.itemId);
 
     return { success: true, itemId: params.itemId };
-  }
-
-  async createItemInStorage(params: CreateItemParams): Promise<StorageItem> {
-    const { storageId, userId, name, isDirectory, parentId, fileId } = params;
-
-    await this.permissionService.verifyUserAccess(userId, storageId, ResourceType.STORAGE, [
-      AccessRole.ADMIN,
-      AccessRole.WRITE,
-    ]);
-
-    if (!isDirectory && !fileId) {
-      throw new BadRequestException('File items must have a fileId.');
-    }
-
-    const item = await this.storageItemService.createItem(
-      name,
-      isDirectory,
-      parentId,
-      fileId,
-      userId.toString(),
-      storageId,
-    );
-
-    return item;
   }
 }
