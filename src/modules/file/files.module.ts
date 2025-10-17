@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { S3Module } from 'src/s3/s3.module';
+import { S3Module } from 'src/modules/s3/s3.module';
 import { FileController } from './controllers/file.controller';
 import { FileUploadController } from './controllers/file.upload.controller';
 import { FileDownloadController } from './controllers/file.download.controller';

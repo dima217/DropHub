@@ -1,9 +1,9 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
-import { S3Service } from '../../../s3/s3.service.js';
+import { S3Service } from '../../../modules/s3/s3.service.js';
 import { ConfigService } from '@nestjs/config';
 import { Inject } from '@nestjs/common';
-import { S3_BUCKET_TOKEN } from 'src/s3/s3.tokens.js';
+import { S3_BUCKET_TOKEN } from 'src/modules/s3/s3.tokens.js';
 
 @Processor('file-cleanup')
 export class FileCleanUpProcessor extends WorkerHost {

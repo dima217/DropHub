@@ -5,11 +5,11 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { S3Service } from 'src/s3/s3.service';
+import { S3Service } from 'src/modules/s3/s3.service';
 import { GetObjectCommandInput } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { FilesService } from '../file.service';
-import { S3_BUCKET_TOKEN } from 'src/s3/s3.tokens';
+import { S3_BUCKET_TOKEN } from 'src/modules/s3/s3.tokens';
 import { UniversalPermissionService } from 'src/modules/permission/services/permission.service';
 import { TokenService } from 'src/modules/token/services/token.service';
 import { AccessRole, ResourceType } from '../../../permission/entities/permission.entity';

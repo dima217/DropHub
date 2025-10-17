@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { S3Module } from 'src/s3/s3.module';
+import { S3Module } from 'src/modules/s3/s3.module';
 import { FileQueueService } from './services/file.queue.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DatabaseModule } from 'src/config/modules/database.module';

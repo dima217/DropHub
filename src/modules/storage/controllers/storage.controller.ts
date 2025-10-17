@@ -1,5 +1,7 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { StorageService } from '../services/storage.service';
+import { AuthGuard } from '@nestjs/passport';
+import type { RequestWithUser } from 'src/types/express';
 
 @Controller('storage')
 export class UserStorageController {
@@ -18,7 +20,8 @@ export class UserStorageController {
     } */
 
   @Post()
-  async getUserStorage(@Body() body: { userId: number }) {
-    return this.userStorageService.getStoragesByUserId(body.userId);
+  @UseGuards(AuthGuard)
+  async getUserStorage(@Req() req: RequestWithUser) {
+    return this.userStorageService.getStoragesByUserId(req.user.id);
   }
 }
