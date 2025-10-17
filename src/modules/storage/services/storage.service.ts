@@ -1,4 +1,9 @@
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { UserStorageDocument } from '../schemas/storage.schema';
 import { Model } from 'mongoose';
@@ -6,6 +11,7 @@ import { StorageItemService } from './storage.item.service';
 import { AccessRole, ResourceType } from 'src/modules/permission/entities/permission.entity';
 import { UniversalPermissionService } from 'src/modules/permission/services/permission.service';
 import { StorageItem } from '../schemas/storage.item.schema';
+import { TokenService } from 'src/modules/token/services/token.service';
 
 interface GetStorageItemsParams {
   storageId: string;
@@ -34,6 +40,7 @@ export class StorageService {
     @InjectModel('UserStorage') private readonly storageModel: Model<UserStorageDocument>,
     private readonly permissionService: UniversalPermissionService,
     private readonly storageItemService: StorageItemService,
+    private readonly tokenService: TokenService,
   ) {}
 
   async createStorage(userId: number) {
@@ -63,6 +70,27 @@ export class StorageService {
       ...s.toObject(),
       role: permissions.find((p) => p.resourceId === s._id.toString())?.role,
     }));
+  }
+
+  async getStorageItemByToken(token: string) {
+    if (!token) {
+      throw new UnauthorizedException('Token is required.');
+    }
+    const payload = await this.tokenService.validateToken(token);
+
+    if (payload.resourceType !== 'storage') {
+      throw new ForbiddenException('Token is not valid for accessing storage items.');
+    }
+
+    if (payload.role !== 'R' && payload.role !== 'RW') {
+      throw new ForbiddenException('Token does not grant read access.');
+    }
+
+    const itemId = payload.resourceId;
+
+    const item = await this.storageItemService.getItemById(itemId);
+
+    return item;
   }
 
   private async verifyUserAccess(userId: number, storageId: string, requiredRoles: AccessRole[]) {

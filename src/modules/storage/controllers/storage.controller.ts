@@ -5,6 +5,7 @@ import type { RequestWithUser } from 'src/types/express';
 import { GetStorageDto } from '../dto/get-storage.dto';
 import { GetStructureDto } from '../dto/get-structure.dto';
 import { DeleteItemDto } from '../dto/delete-item.dto';
+import { GetItemByTokenDto } from '../dto/get-item-token.dto';
 
 @Controller('storage')
 @UseGuards(AuthGuard)
@@ -52,5 +53,15 @@ export class UserStorageController {
     };
 
     return this.userStorageService.deleteStorageItem(params);
+  }
+}
+
+@Controller('public/storage')
+export class PublicStorageController {
+  constructor(private readonly userStorageService: StorageService) {}
+
+  @Post('item-by-token')
+  async getItemByToken(@Body() body: GetItemByTokenDto) {
+    return this.userStorageService.getStorageItemByToken(body.token);
   }
 }

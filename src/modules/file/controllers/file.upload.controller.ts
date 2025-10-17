@@ -7,9 +7,9 @@ import { UserIpInterceptor } from 'src/common/interceptors/user.ip.interceptor';
 import { AuthGuard } from '@nestjs/passport';
 import type { RequestWithUser } from 'src/types/express';
 import { MultipartUploadService } from '../services/upload/multipart.upload.service';
-import { UploadByTokenDto } from '../dto/upload/upload.token.dto';
-import { UploadToRoomDto } from '../dto/upload/upload.room.dto';
-import { UploadToStorageDto } from '../dto/upload/upload.storage.dto';
+import { UploadByTokenDto } from '../dto/upload/upload-token.dto';
+import { UploadToRoomDto } from '../dto/upload/upload-room.dto';
+import { UploadToStorageDto } from '../dto/upload/upload-storage.dto';
 
 @Controller('/upload')
 export class FileUploadController {
