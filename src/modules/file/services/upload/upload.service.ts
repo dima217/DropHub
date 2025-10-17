@@ -28,7 +28,7 @@ export class UploadService {
     @InjectModel(File.name) private readonly fileModel: Model<FileDocument>,
   ) {}
 
-  async getPresignedUrl(filename: string, contentType: string) {
+  private async getPresignedUrl(filename: string, contentType: string) {
     const key = `uploads/${Date.now()}-${filename}`;
 
     const url = await getSignedUrl(
@@ -90,16 +90,16 @@ export class UploadService {
     const { url, key } = await this.getPresignedUrl(originalName, mimeType);
 
     const fileUploadMeta = await this.fileService.createFileMeta({
-      originalName: originalName,
-      key: key,
+      originalName,
+      key,
       size: fileSize,
-      mimeType: mimeType,
+      mimeType,
       uploaderIp,
     });
 
     await this.storageService.createItemInStorage({
       storageId: resourceId,
-      userId: userId,
+      userId,
       name: originalName,
       isDirectory: false,
       parentId: null,

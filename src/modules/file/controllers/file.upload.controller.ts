@@ -1,8 +1,8 @@
 import { Body, Controller, Post, UseInterceptors, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { UploadService } from '../services/upload/upload.service';
-import { UploadInitMultipartDto } from '../dto/upload/upload.init.multipart.dto';
-import { UploadCompleteDto } from '../dto/upload/upload.complete.dto';
+import { UploadInitMultipartDto } from '../dto/upload/upload-init-multipart.dto';
+import { UploadCompleteDto } from '../dto/upload/upload-complete.dto';
 import { UserIpInterceptor } from 'src/common/interceptors/user.ip.interceptor';
 import { AuthGuard } from '@nestjs/passport';
 import type { RequestWithUser } from 'src/types/express';

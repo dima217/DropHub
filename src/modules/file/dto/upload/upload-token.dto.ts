@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsString, IsOptional, IsUUID } from 'class-validator';
-import { UploadBaseDto } from './upload.base.dto';
+import { UploadBaseDto } from './upload-base.dto';
 
 export class UploadByTokenDto extends UploadBaseDto {
   @IsNotEmpty()
