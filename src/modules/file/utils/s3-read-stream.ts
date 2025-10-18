@@ -1,9 +1,8 @@
 import { GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
-import { S3Client } from '@aws-sdk/client-s3';
 import { MAX_DOWNLOAD_SIZE } from '../../../constants/interfaces';
 import { Injectable } from '@nestjs/common';
-import { S3Service } from 'src/s3/s3.service';
+import { S3Service } from 'src/modules/s3/s3.service';
 
 @Injectable()
 export class S3ReadStream {
@@ -11,7 +10,7 @@ export class S3ReadStream {
 
   constructor(
     private readonly bucket: string = 'drop-hub-storage',
-    private readonly s3Service: S3Service, 
+    private readonly s3Service: S3Service,
   ) {}
 
   private async fetchFileSize(key: string) {

@@ -1,6 +1,6 @@
 import { IsString } from 'class-validator';
 
-export class DownloadFileDto {
+export class CreateRoomDto {
   @IsString()
-  uploadId: string;
+  username?: string;
 }

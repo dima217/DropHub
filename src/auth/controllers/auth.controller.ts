@@ -11,13 +11,12 @@ import {
 } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
 import { LocalGuard } from '../guards/local-guard';
-import { JwtAuthGuard } from '../guards/jwt-guard';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { RequestEmailCodeDto } from '../dto/request-email-code.dto';
 import { VerifyEmailCodeDto } from '../dto/verify-email-code.dto';
 import { VerificationService } from '../services/verification.service';
 import type { FastifyReply } from 'fastify';
-import type { JwtAuthRequest, RefreshTokenRequest, RequestWithUser } from 'src/types/express';
+import type { RefreshTokenRequest, RequestWithUser } from 'src/types/express';
 import type { Request, Response } from 'express';
 import { RefreshTokenGuard } from '../guards/refresh-token-guard';
 import { AuthGuard } from '@nestjs/passport';
@@ -81,12 +80,6 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
     });
     res.redirect(`http://localhost:3000/auth/callback?token=${accessToken}`);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('profile')
-  async getProfile(@Req() req: JwtAuthRequest) {
-    return req.user;
   }
 
   @Post('check-email')

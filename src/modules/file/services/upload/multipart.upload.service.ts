@@ -7,8 +7,8 @@ import { S3WriteStream } from '../../utils/s3-write-stream';
 import { File, FileDocument } from '../../schemas/file.schema';
 import { Room, RoomDocument } from '../../../room/schemas/room.schema';
 import { FileUploadStatus } from '../../../../constants/interfaces';
-import { UploadCompleteDto } from '../../dto/upload/upload.complete.dto';
-import { UploadInitMultipartDto } from '../../dto/upload/upload.init.multipart.dto';
+import { UploadCompleteDto } from '../../dto/upload/upload-complete.dto';
+import { UploadInitMultipartDto } from '../../dto/upload/upload-init-multipart.dto';
 import { FilesService } from '../file.service';
 
 @Injectable()

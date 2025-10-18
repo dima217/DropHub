@@ -3,13 +3,11 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
-import { RmqOptions, Transport } from '@nestjs/microservices';
-import multipart from '@fastify/multipart';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter());
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   /* app.connectMicroservice<RmqOptions>({
     transport: Transport.RMQ,
@@ -48,7 +46,6 @@ async function bootstrap() {
     SwaggerModule.setup(swaggerConfig.path || 'api', app, document);
   }
   app.enableCors();
-  await app.register(multipart);
   const port = configService.get<number>('port') || 3000;
   await app.listen(port, '0.0.0.0');
 }

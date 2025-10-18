@@ -38,6 +38,13 @@ export class UniversalPermissionService {
     });
   }
 
+  async deletePermissionsByResource(resourceId: string, resourceType: ResourceType): Promise<void> {
+    await this.permissionRepository.delete({
+      resourceId: resourceId,
+      resourceType: resourceType,
+    });
+  }
+
   async verifyUserAccess(
     userId: number,
     resourceId: string,

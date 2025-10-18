@@ -2,10 +2,12 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { IUser } from '../types/types';
 import { UsersService } from '../../modules/user/services/user.service';
 import { CacheService } from 'src/cache/cache.service';
-import { cookieOrHeaderExtractor } from '../common/utils/cookie-or-header.extractor';
+
+interface JwtPayload {
+  id: number;
+}
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -26,7 +28,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(user: IUser) {
+  async validate(user: JwtPayload) {
     const cacheKey = `user:${user.id}`;
 
     const fullUser = await this.cacheService.cacheWrapper(cacheKey, async () => {
