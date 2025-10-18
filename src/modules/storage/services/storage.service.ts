@@ -58,6 +58,7 @@ export class StorageService {
       role: AccessRole.ADMIN,
       resourceId: storageId,
     });
+
     return storage;
   }
 
@@ -88,15 +89,21 @@ export class StorageService {
   async getStoragesByUserId(userId: number) {
     const permissions = await this.permissionService.getPermissionsByUserId(userId);
 
-    const storageIds = permissions.map((p) => p.resourceId);
+    let storageIds = permissions.map((p) => p.resourceId);
 
-    const storages = await this.storageModel.find({
-      _id: { $in: storageIds },
-    });
+    if (!storageIds) {
+      const newStorage = await this.createStorage(userId);
+      storageIds = [newStorage._id.toString()];
+    }
+
+    let storages = await this.storageModel
+      .find({ _id: { $in: storageIds } })
+      .lean()
+      .exec();
 
     return storages.map((s) => ({
-      ...s.toObject(),
-      role: permissions.find((p) => p.resourceId === s._id.toString())?.role,
+      ...s,
+      role: permissions.find((p) => p.resourceId === s._id.toString())?.role ?? AccessRole.ADMIN,
     }));
   }
 
