@@ -93,7 +93,7 @@ export class StorageService {
 
     if (!storageIds) {
       const newStorage = await this.createStorage(userId);
-      storageIds = [newStorage._id.toString()];
+      return { ...newStorage, role: AccessRole.ADMIN };
     }
 
     let storages = await this.storageModel
@@ -103,7 +103,7 @@ export class StorageService {
 
     return storages.map((s) => ({
       ...s,
-      role: permissions.find((p) => p.resourceId === s._id.toString())?.role ?? AccessRole.ADMIN,
+      role: permissions.find((p) => p.resourceId === s._id.toString())?.role,
     }));
   }
 
