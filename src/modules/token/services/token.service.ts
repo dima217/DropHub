@@ -4,6 +4,11 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { CacheService } from 'src/cache/cache.service';
 
+export enum AccessRole {
+  READ = 'R',
+  READ_WRITE = 'RW',
+}
+
 interface TokenPayload {
   tokenId: string;
   resourceId: string;
