@@ -1,8 +1,10 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { TokenService } from '../services/token.service';
 import { GenerateTokenDto } from '../dto/generate-token.dto';
 import { RevokeTokenDto } from '../dto/revoke-token.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+@UseGuards(AuthGuard)
 @Controller('/token')
 export class TokenController {
   constructor(private readonly tokenService: TokenService) {}
