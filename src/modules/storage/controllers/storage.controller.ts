@@ -68,7 +68,7 @@ export class UserStorageController {
 export class PublicStorageController {
   constructor(private readonly userStorageService: StorageService) {}
 
-  @Get('item-by-token')
+  @Get(':token')
   async getItemByToken(@Param('token') token: string) {
     return this.userStorageService.getStorageItemByToken(token);
   }

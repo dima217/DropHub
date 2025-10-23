@@ -56,6 +56,16 @@ export class TokenService {
     return payload;
   }
 
+  async generatePublicLink(
+    payload: Omit<TokenPayload, 'tokenId' | 'exp'>,
+    resourceBaseUrl: string,
+    expiresIn: string = '7d',
+  ): Promise<{ token: string; url: string }> {
+    const token = await this.generateToken(payload, expiresIn);
+    const url = `${resourceBaseUrl}/${token}`;
+    return { token, url };
+  }
+
   async revokeToken(token: string): Promise<void> {
     const payload = await this.validateToken(token);
 
