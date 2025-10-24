@@ -1,6 +1,6 @@
 import { IsString } from 'class-validator';
 
-export class GetItemByTokenDto {
+export class RevokeTokenDto {
   @IsString()
   token: string;
 }

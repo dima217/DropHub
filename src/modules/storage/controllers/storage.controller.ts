@@ -1,11 +1,19 @@
-import { Controller, Post, Req, UseGuards, Body, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Req,
+  UseGuards,
+  Body,
+  BadRequestException,
+  Get,
+  Param,
+} from '@nestjs/common';
 import { StorageService } from '../services/storage.service';
 import { AuthGuard } from '@nestjs/passport';
 import type { RequestWithUser } from 'src/types/express';
 import { GetStorageDto } from '../dto/get-storage.dto';
 import { GetStructureDto } from '../dto/get-structure.dto';
 import { DeleteItemDto } from '../dto/delete-item.dto';
-import { GetItemByTokenDto } from '../dto/get-item-token.dto';
 
 @Controller('storage')
 @UseGuards(AuthGuard)
@@ -60,8 +68,8 @@ export class UserStorageController {
 export class PublicStorageController {
   constructor(private readonly userStorageService: StorageService) {}
 
-  @Post('item-by-token')
-  async getItemByToken(@Body() body: GetItemByTokenDto) {
-    return this.userStorageService.getStorageItemByToken(body.token);
+  @Get(':token')
+  async getItemByToken(@Param('token') token: string) {
+    return this.userStorageService.getStorageItemByToken(token);
   }
 }
