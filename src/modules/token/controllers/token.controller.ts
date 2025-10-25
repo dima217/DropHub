@@ -9,8 +9,8 @@ import { AuthGuard } from '@nestjs/passport';
 export class TokenController {
   constructor(private readonly tokenService: TokenService) {}
   @Post('/generate')
-  async generateToken(@Body() generateTokenDto: GenerateTokenDto) {
-    const token = await this.tokenService.generateToken(generateTokenDto);
+  async generatePublicLink(@Body() generateTokenDto: GenerateTokenDto) {
+    const token = await this.tokenService.generatePublicLink(generateTokenDto);
     return { success: true, token: token };
   }
 

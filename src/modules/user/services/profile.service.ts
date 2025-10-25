@@ -38,4 +38,10 @@ export class ProfileService {
     if (!profile) throw new NotFoundException(`Profile with ID ${id} not found`);
     return profile;
   }
+
+  async getContacts() {}
+
+  async addContact() {}
+
+  async removeContact() {}
 }

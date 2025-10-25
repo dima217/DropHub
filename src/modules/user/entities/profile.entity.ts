@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { IsBoolean, IsEnum } from 'class-validator';
+import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Profile {
@@ -18,4 +17,8 @@ export class Profile {
 
   @Column({ type: 'varchar', nullable: true })
   avatarUrl: string | null;
+
+  @ManyToMany(() => Profile, (profile) => profile.contacts)
+  @JoinTable()
+  contacts: Profile[];
 }
