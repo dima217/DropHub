@@ -21,18 +21,6 @@ export class ProfileService {
     return manager.save(profile);
   }
 
-  async updateProfile(profile: Profile, dto: UserUpdateProfileDTO): Promise<Profile> {
-    if (dto.avatarUrl && profile.avatarUrl && dto.avatarUrl !== profile.avatarUrl) {
-      await this.imageService.deleteFileFromStorage(profile.avatarUrl);
-    }
-    if (dto.avatarUrl) profile.avatarUrl = dto.avatarUrl;
-
-    if (dto.firstName !== undefined) profile.firstName = dto.firstName;
-    if (dto.lastName !== undefined) profile.lastName = dto.lastName;
-
-    return this.profileRepository.save(profile);
-  }
-
   async getProfileById(id: number): Promise<Profile> {
     const profile = await this.profileRepository.findOne({ where: { id } });
     if (!profile) throw new NotFoundException(`Profile with ID ${id} not found`);
@@ -53,7 +41,48 @@ export class ProfileService {
     return profile?.contacts || [];
   }
 
-  async addContact(profileId: string, contactId: string) {}
+  async updateProfile(profileId: number, dto: UserUpdateProfileDTO): Promise<Profile> {
+    const profile = await this.getProfileById(profileId);
 
-  async removeContact(profileId: string, contactId: string) {}
+    if (dto.avatarUrl && dto.avatarUrl !== profile.avatarUrl && profile.avatarUrl) {
+      await this.imageService.deleteFileFromStorage(profile.avatarUrl);
+      profile.avatarUrl = dto.avatarUrl;
+    }
+
+    if (dto.firstName) profile.firstName = dto.firstName;
+    if (dto.lastName) profile.lastName = dto.lastName;
+
+    return this.profileRepository.save(profile);
+  }
+
+  async addContact(profileId: number, contactId: number): Promise<Profile> {
+    const profile = await this.profileRepository.findOne({
+      where: { id: profileId },
+      relations: ['contacts'],
+    });
+    if (!profile) throw new NotFoundException('Profile not found');
+
+    const contact = await this.profileRepository.findOneBy({ id: contactId });
+    if (!contact) throw new NotFoundException('Contact not found');
+
+    if (!profile.contacts.some((c) => c.id === contact.id)) {
+      profile.contacts.push(contact);
+      await this.profileRepository.save(profile);
+    }
+
+    return profile;
+  }
+
+  async removeContact(profileId: number, contactId: number): Promise<Profile> {
+    const profile = await this.profileRepository.findOne({
+      where: { id: profileId },
+      relations: ['contacts'],
+    });
+    if (!profile) throw new NotFoundException('Profile not found');
+
+    profile.contacts = profile.contacts.filter((c) => c.id !== contactId);
+    await this.profileRepository.save(profile);
+
+    return profile;
+  }
 }

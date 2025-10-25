@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  RelationId,
+} from 'typeorm';
 import { IsBoolean, IsEnum } from 'class-validator';
 import { Profile } from './profile.entity';
 import { Permission } from 'src/modules/permission/entities/permission.entity';
@@ -56,6 +64,9 @@ export class User {
   @OneToOne(() => Profile, (profile) => profile.user, { cascade: true })
   @JoinColumn()
   profile: Profile;
+
+  @RelationId((user: User) => user.profile)
+  profileId: number;
 
   @OneToMany(() => Permission, (perm) => perm, { cascade: true })
   @JoinColumn()

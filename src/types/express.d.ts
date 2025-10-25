@@ -12,15 +12,8 @@ interface RequestWithUser extends Request {
   user: {
     id: number;
     role: UserRole;
+    profileId: number;
   };
-}
-
-interface RequestWithProfile extends Request {
-  user: {
-    id: number;
-    role: UserRole;
-  };
-  profile: Profile;
 }
 
 interface RefreshTokenRequest extends Request {

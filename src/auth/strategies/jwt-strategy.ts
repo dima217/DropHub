@@ -38,6 +38,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (fullUser?.isBanned === true) {
       throw new UnauthorizedException('Your account has been banned.');
     }
-    return { id: user.id, role: fullUser?.role };
+    return { id: user.id, role: fullUser?.role, profileId: fullUser?.profileId };
   }
 }
