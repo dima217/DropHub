@@ -11,7 +11,7 @@ import { UserUpdateProfileDTO } from '../dto/update-profile.dto';
 import { ProfileService } from './profile.service';
 
 const CACHE_TTL = 300;
-const USER_SELECT_FIELDS = ['id', 'email', 'profile'] as const;
+const USER_SELECT_FIELDS = ['id', 'email'] as const;
 
 @Injectable()
 export class UsersService {
@@ -85,20 +85,6 @@ export class UsersService {
     await this.cacheService.deleteByPattern('users:*');
 
     return updatedUser;
-  }
-
-  async updateUserProfile(id: number, dto: UserUpdateProfileDTO): Promise<User> {
-    const user = await this.userRepository.findOneBy({ id });
-
-    if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
-    }
-    await this.profileService.updateProfile(user.profile, dto);
-    const savedUser = await this.userRepository.save(user);
-
-    await this.cacheService.deleteByPattern(`user:${id}`);
-
-    return savedUser;
   }
 
   async updatePassword(id: number, newPassword: string): Promise<void> {

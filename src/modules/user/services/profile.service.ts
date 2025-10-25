@@ -39,9 +39,21 @@ export class ProfileService {
     return profile;
   }
 
-  async getContacts() {}
+  async getProfileByUserId(userId: number): Promise<Profile> {
+    const profile = await this.profileRepository.findOne({ where: { user: { id: userId } } });
+    if (!profile) throw new NotFoundException(`Profile with ID ${userId} not found`);
+    return profile;
+  }
 
-  async addContact() {}
+  async getContacts(profileId: number) {
+    const profile = await this.profileRepository.findOne({
+      where: { id: profileId },
+      relations: ['contacts'],
+    });
+    return profile?.contacts || [];
+  }
 
-  async removeContact() {}
+  async addContact(profileId: string, contactId: string) {}
+
+  async removeContact(profileId: string, contactId: string) {}
 }

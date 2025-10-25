@@ -1,5 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { User } from './user.entity';
 
 @Entity()
 export class Profile {
@@ -17,6 +26,10 @@ export class Profile {
 
   @Column({ type: 'varchar', nullable: true })
   avatarUrl: string | null;
+
+  @OneToOne(() => User, (user) => user.profile)
+  @JoinColumn()
+  user: User;
 
   @ManyToMany(() => Profile, (profile) => profile.contacts)
   @JoinTable()

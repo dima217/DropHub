@@ -53,7 +53,7 @@ export class User {
   @IsBoolean()
   isOAuthUser: boolean;
 
-  @OneToOne(() => Profile, { cascade: true })
+  @OneToOne(() => Profile, (profile) => profile.user, { cascade: true })
   @JoinColumn()
   profile: Profile;
 
