@@ -47,15 +47,15 @@ export class InviteService {
     const invite = await this.inviteRepository.findOne({ where: { token } });
 
     if (!invite) {
-      throw new UnauthorizedException('Приглашение не найдено.');
+      throw new UnauthorizedException('Invention has not been found.');
     }
     if (invite.status !== InviteStatus.PENDING) {
-      throw new UnauthorizedException('Приглашение уже использовано или неактивно.');
+      throw new UnauthorizedException('Invention has been used or inactive.');
     }
     if (invite.expiresAt < new Date()) {
       invite.status = InviteStatus.EXPIRED;
       await this.inviteRepository.save(invite);
-      throw new UnauthorizedException('Срок действия приглашения истек.');
+      throw new UnauthorizedException('Invention has been expired.');
     }
 
     return invite;
@@ -65,7 +65,7 @@ export class InviteService {
     const invite = await this.validateInviteToken(token);
 
     if (invite.senderId === newUserId) {
-      throw new BadRequestException('Невозможно принять приглашение самому себе.');
+      throw new BadRequestException('It is impossible to send an invitation to yourself.');
     }
 
     await this.relationshipsService.createMutualFriends(invite.senderId, newUserId);

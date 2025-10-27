@@ -7,7 +7,7 @@ import { Friend } from '../entities/friend.entity';
 
 @Injectable()
 export class RelationshipsService {
-  private readonly logger = new Logger(RelationshipsService.name);
+  // private readonly logger = new Logger(RelationshipsService.name);
 
   constructor(
     @InjectRepository(FriendRequest)
@@ -52,17 +52,15 @@ export class RelationshipsService {
     const targetUser = await this.usersService.findUserForContact(targetEmail);
 
     if (!targetUser) {
-      throw new NotFoundException(
-        'Пользователь не найден в приложении. Используйте приглашение по Email.',
-      );
+      throw new NotFoundException('User does not exist. Use inventions by Email.');
     }
     const receiverId = targetUser.id;
 
     if (senderId === receiverId) {
-      throw new BadRequestException('Нельзя отправить запрос самому себе.');
+      throw new BadRequestException('It is impossible to send an invitation to yourself.');
     }
     if (await this.areFriends(senderId, receiverId)) {
-      throw new BadRequestException('Уже в друзьях.');
+      throw new BadRequestException('Already contact.');
     }
 
     const existingRequest = await this.requestRepository.findOne({
@@ -73,7 +71,7 @@ export class RelationshipsService {
     });
 
     if (existingRequest) {
-      throw new BadRequestException('Активный запрос на дружбу уже существует.');
+      throw new BadRequestException('Active request already exists.');
     }
 
     const request = this.requestRepository.create({ senderId, receiverId });
@@ -93,7 +91,7 @@ export class RelationshipsService {
     });
 
     if (!request) {
-      throw new NotFoundException('Запрос не найден или неактивен.');
+      throw new NotFoundException('Request not found or inactive.');
     }
 
     await this.createMutualFriends(request.senderId, receiverId);
@@ -110,7 +108,7 @@ export class RelationshipsService {
     });
 
     if (!request) {
-      throw new NotFoundException('Запрос не найден или неактивен.');
+      throw new NotFoundException('Request not found or inactive.');
     }
 
     request.status = RequestStatus.REJECTED;
@@ -125,7 +123,7 @@ export class RelationshipsService {
     });
 
     if (!request) {
-      throw new NotFoundException('Запрос не найден или не может быть отменен.');
+      throw new NotFoundException('The request was not found or could not be cancelled.');
     }
 
     request.status = RequestStatus.CANCELED;
