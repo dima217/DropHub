@@ -1,6 +1,6 @@
 import { IsNumber } from 'class-validator';
 
-export class Contact {
+export class ContactDto {
   @IsNumber()
   contactId: number;
 }

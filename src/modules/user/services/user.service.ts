@@ -8,7 +8,15 @@ import { UpdateUserDto } from '../dto/update-user.dto';
 import { UpdateUserResetDto } from '../dto/update-user-reset.dto';
 
 const CACHE_TTL = 300;
-const USER_SELECT_FIELDS = ['id', 'email', 'profileId'] as const;
+const USER_SELECT_FIELDS = [
+  'id',
+  'uuid',
+  'email',
+  'role',
+  'isBanned',
+  'isOAuthUser',
+  'profileId',
+] as const;
 
 @Injectable()
 export class UsersService {
@@ -42,7 +50,7 @@ export class UsersService {
       async () => {
         return this.userRepository.findOne({
           where: { id },
-          select: ['profileId'],
+          select: [...USER_SELECT_FIELDS],
         });
       },
       CACHE_TTL,
@@ -53,6 +61,13 @@ export class UsersService {
     return this.userRepository.findOne({
       where: { email },
       select: ['id', 'password'],
+    });
+  }
+
+  async findUserForContact(email: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { email },
+      select: ['id', 'email', 'profileId'],
     });
   }
 
