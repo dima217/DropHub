@@ -13,7 +13,7 @@ export enum AccessRole {
 interface TokenPayload {
   tokenId: string;
   resourceId: string;
-  resourceType: 'file' | 'room' | 'storage';
+  resourceType: 'file' | 'room' | 'storage' | 'invite';
   role: 'R' | 'RW';
   exp: number;
 }
