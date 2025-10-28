@@ -64,6 +64,14 @@ export class S3Config {
   secretAccessKey: string;
 }
 
+export class CentrifugoConfig {
+  @IsString()
+  apiUrl: string;
+
+  @IsString()
+  apiKey: string;
+}
+
 export class AppConfig {
   @IsString()
   environment: string;
@@ -85,4 +93,7 @@ export class AppConfig {
 
   @ValidateNested()
   redis: RedisConfig;
+
+  @ValidateNested()
+  centrifugo: CentrifugoConfig;
 }

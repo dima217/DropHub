@@ -35,6 +35,10 @@ export const configuration = (): AppConfig => {
       port: process.env.REDIS_PORT,
       password: process.env.REDIS_PASSWORD,
     },
+    centrifugo: {
+      apiUrl: process.env.CENTRIFUGO_API_URL,
+      apiKey: process.env.CENTRIFUGO_API_KEY,
+    },
   });
 
   const errors = validateSync(config);
