@@ -2,6 +2,7 @@
 import { User } from 'src/modules/user/entities/user.entity';
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { ContactListMember } from './contact-list-member.entity';
+import { Profile } from 'src/modules/user/entities/profile.entity';
 
 @Entity('contact_lists')
 export class ContactList {
@@ -14,9 +15,9 @@ export class ContactList {
   @Column()
   ownerId: number;
 
-  /*@ManyToOne(() => User, (user) => user.ownedContactLists)
+  @ManyToOne(() => Profile, (profile) => profile.contactList)
   @JoinColumn({ name: 'ownerId' })
-  owner: User;*/
+  owner: Profile;
 
   @OneToMany(() => ContactListMember, (member) => member.list)
   members: ContactListMember[];

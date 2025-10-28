@@ -1,22 +1,21 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 
 @Injectable()
 export class CentrifugoService {
-  private readonly apiUrl = 'http://localhost:8000/api';
-  private readonly apiKey = 'test';
+  constructor(private readonly configService: ConfigService) {}
 
   async publish(channel: string, data: Record<string, any>) {
-    try {
-      const response = await axios.post(
-        `${this.apiUrl}/publish`,
-        { channel, data },
-        { headers: { Authorization: `apikey ${this.apiKey}` } },
-      );
-
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await axios.post(
+      `${this.configService.get('centrifugo.apiUrl')}/publish`,
+      { channel, data },
+      {
+        headers: {
+          Authorization: `apikey ${this.configService.get('centrifugo.apiKey')}`,
+        },
+      },
+    );
+    return response.data;
   }
 }

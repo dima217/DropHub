@@ -33,13 +33,13 @@ export class ProfileService {
     return profile;
   }
 
-  async getContacts(profileId: number) {
+  /* async getContacts(profileId: number) {
     const profile = await this.profileRepository.findOne({
       where: { id: profileId },
       relations: ['contacts'],
     });
     return profile?.contacts || [];
-  }
+  } */
 
   async updateProfile(profileId: number, dto: UserUpdateProfileDTO): Promise<Profile> {
     const profile = await this.getProfileById(profileId);
@@ -55,7 +55,7 @@ export class ProfileService {
     return this.profileRepository.save(profile);
   }
 
-  async addContact(profileId: number, contactId: number): Promise<Profile> {
+  /* async addContact(profileId: number, contactId: number): Promise<Profile> {
     const profile = await this.profileRepository.findOne({
       where: { id: profileId },
       relations: ['contacts'],
@@ -84,5 +84,5 @@ export class ProfileService {
     await this.profileRepository.save(profile);
 
     return profile;
-  }
+  } */
 }

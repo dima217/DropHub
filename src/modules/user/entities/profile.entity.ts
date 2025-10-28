@@ -1,14 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  JoinTable,
-  ManyToMany,
-  OneToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { User } from './user.entity';
+import { ContactList } from 'src/modules/relationships/entities/contact-list.entity';
+import { ContactListMember } from 'src/modules/relationships/entities/contact-list-member.entity';
 
 @Entity()
 export class Profile {
@@ -31,7 +25,10 @@ export class Profile {
   @JoinColumn()
   user: User;
 
-  @ManyToMany(() => Profile, (profile) => profile.contacts)
-  @JoinTable()
-  contacts: Profile[];
+  @OneToMany(() => ContactList, (list) => list.owner)
+  @JoinColumn()
+  contactList: ContactList[];
+
+  @OneToMany(() => ContactListMember, (member) => member.member)
+  memberOfLists: ContactListMember[];
 }
