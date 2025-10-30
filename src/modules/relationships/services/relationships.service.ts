@@ -5,6 +5,7 @@ import { UsersService } from 'src/modules/user/services/user.service';
 import { FriendRequest, RequestStatus } from '../entities/friend-request.entity';
 import { Friend } from '../entities/friend.entity';
 import { CentrifugoService } from 'src/modules/notification/centrifugo.service';
+import { FriendService } from './friend.service';
 
 @Injectable()
 export class RelationshipsService {
@@ -12,32 +13,10 @@ export class RelationshipsService {
     @InjectRepository(FriendRequest)
     private readonly requestRepository: Repository<FriendRequest>,
     @InjectRepository(Friend)
-    private readonly friendRepository: Repository<Friend>,
+    private readonly friendService: FriendService,
     private readonly usersService: UsersService,
     private readonly centrifugo: CentrifugoService,
   ) {}
-
-  private normalizeIds(id1: number, id2: number): { userOneId: number; userTwoId: number } {
-    return id1 < id2 ? { userOneId: id1, userTwoId: id2 } : { userOneId: id2, userTwoId: id1 };
-  }
-
-  async areFriends(userAId: number, userBId: number): Promise<boolean> {
-    if (userAId === userBId) return true;
-    const { userOneId, userTwoId } = this.normalizeIds(userAId, userBId);
-    const friendEntry = await this.friendRepository.findOne({
-      where: { userOneId, userTwoId },
-    });
-    return !!friendEntry;
-  }
-
-  async createMutualFriends(userAId: number, userBId: number): Promise<void> {
-    if (userAId === userBId) return;
-    const { userOneId, userTwoId } = this.normalizeIds(userAId, userBId);
-    const isAlreadyFriend = await this.areFriends(userAId, userBId);
-    if (isAlreadyFriend) return;
-    const newFriendship = this.friendRepository.create({ userOneId, userTwoId });
-    await this.friendRepository.save(newFriendship);
-  }
 
   async sendFriendRequest(senderId: number, targetEmail: string): Promise<FriendRequest> {
     const targetUser = await this.usersService.findUserForContact(targetEmail);
@@ -46,7 +25,7 @@ export class RelationshipsService {
 
     if (senderId === receiverId)
       throw new BadRequestException('Cannot send a request to yourself.');
-    if (await this.areFriends(senderId, receiverId))
+    if (await this.friendService.areFriends(senderId, receiverId))
       throw new BadRequestException('Already friends.');
 
     const existingRequest = await this.requestRepository.findOne({
@@ -76,7 +55,7 @@ export class RelationshipsService {
     });
     if (!request) throw new NotFoundException('Request not found or inactive.');
 
-    await this.createMutualFriends(request.senderId, receiverId);
+    await this.friendService.createMutualFriends(request.senderId, receiverId);
     request.status = RequestStatus.ACCEPTED;
     await this.requestRepository.save(request);
 

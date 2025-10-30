@@ -1,9 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from './user.entity';
-import { ContactList } from 'src/modules/relationships/entities/contact-list.entity';
-import { ContactListMember } from 'src/modules/relationships/entities/contact-list-member.entity';
-
 @Entity()
 export class Profile {
   @ApiProperty({ description: 'Unique user identifier' })
@@ -24,11 +21,4 @@ export class Profile {
   @OneToOne(() => User, (user) => user.profile)
   @JoinColumn()
   user: User;
-
-  @OneToMany(() => ContactList, (list) => list.owner)
-  @JoinColumn()
-  contactList: ContactList[];
-
-  @OneToMany(() => ContactListMember, (member) => member.member)
-  memberOfLists: ContactListMember[];
 }
