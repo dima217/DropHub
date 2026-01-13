@@ -3,18 +3,13 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../../modules/user/services/user.service';
-import { CacheService } from 'src/cache/cache.service';
-
-interface JwtPayload {
-  id: number;
-}
+import { JwtPayload } from '../types';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
-    private readonly cacheService: CacheService,
   ) {
     const secretOrKey = configService.get<string>('JWT_SECRET');
     if (!secretOrKey) {
@@ -28,16 +23,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(user: JwtPayload) {
-    const cacheKey = `user:${user.id}`;
+  async validate(payload: JwtPayload) {
+    const fullUser = await this.usersService.getUserById(payload.id);
 
-    const fullUser = await this.cacheService.cacheWrapper(cacheKey, async () => {
-      return await this.usersService.getUserById(user.id);
-    });
+    if (!fullUser) {
+      throw new UnauthorizedException('User not found.');
+    }
 
-    if (fullUser?.isBanned === true) {
+    if (fullUser.isBanned) {
       throw new UnauthorizedException('Your account has been banned.');
     }
-    return { id: user.id, role: fullUser?.role, profileId: fullUser?.profileId };
+
+    return { id: payload.id, role: fullUser.role, profileId: fullUser.profileId };
   }
 }

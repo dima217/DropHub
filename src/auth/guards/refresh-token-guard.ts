@@ -1,10 +1,10 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-import { Request } from 'express';
+import { RefreshTokenRequest } from 'src/types/express';
 
 @Injectable()
 export class RefreshTokenGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest<Request>();
+    const request = context.switchToHttp().getRequest<RefreshTokenRequest>();
 
     let token: string | undefined;
     const isMobileApp = request.headers['x-client-type'] === 'mobile-app';
@@ -23,8 +23,8 @@ export class RefreshTokenGuard implements CanActivate {
       throw new UnauthorizedException('No refresh token provided');
     }
 
-    (request as any).refreshToken = token;
-    (request as any).isBrowser = isBrowser;
+    request.refreshToken = token;
+    request.isBrowser = isBrowser;
 
     return true;
   }

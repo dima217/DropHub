@@ -6,6 +6,7 @@ import { TokenService } from 'src/modules/token/services/token.service';
 import { Repository } from 'typeorm';
 import { Invite, InviteStatus } from '../entities/invite.entity';
 import { ResourceType } from 'src/modules/permission/entities/permission.entity';
+import { FriendService } from 'src/modules/relationships/services/friend.service';
 
 @Injectable()
 export class InviteService {
@@ -15,7 +16,7 @@ export class InviteService {
     @InjectRepository(Invite)
     private readonly inviteRepository: Repository<Invite>,
     private readonly tokenService: TokenService,
-    private readonly relationshipsService: RelationshipsService,
+    private readonly friendService: FriendService,
   ) {}
 
   async generatePublicInviteLink(
@@ -68,7 +69,7 @@ export class InviteService {
       throw new BadRequestException('It is impossible to send an invitation to yourself.');
     }
 
-    await this.relationshipsService.createMutualFriends(invite.senderId, newUserId);
+    await this.friendService.createMutualFriends(invite.senderId, newUserId);
 
     invite.status = InviteStatus.USED;
     await this.inviteRepository.save(invite);

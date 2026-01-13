@@ -15,7 +15,7 @@ export class ProfileController {
     return this.profileService.updateProfile(req.user.profileId, body);
   }
 
-  @Post('/add-contact')
+  /* @Post('/add-contact')
   async addContact(@Req() req: RequestWithUser, @Body() body: ContactDto) {
     this.profileService.addContact(req.user.profileId, body.contactId);
   }
@@ -23,5 +23,5 @@ export class ProfileController {
   @Post('/remove-contact')
   async removeContact(@Req() req: RequestWithUser, @Body() body: ContactDto) {
     this.profileService.removeContact(req.user.profileId, body.contactId);
-  }
+  } */
 }

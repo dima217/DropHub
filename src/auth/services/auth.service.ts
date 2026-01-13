@@ -1,53 +1,31 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { AuthPayloadDto } from '../dto/auth.dto';
 import { UsersService } from '../../modules/user/services/user.service';
-import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
-import { MailService } from './mail.service';
-import { generateToken } from '../common/additional.functions';
-import { ConfigService } from '@nestjs/config';
 import { User, UserRole } from 'src/modules/user/entities/user.entity';
 import { Request, Response } from 'express';
 import { DataSource } from 'typeorm';
 import { ProfileService } from 'src/modules/user/services/profile.service';
+import { TokenService } from './token.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly usersService: UsersService,
     private readonly profileService: ProfileService,
-    private jwtService: JwtService,
-    private mailService: MailService,
-    private readonly configService: ConfigService,
+    private readonly tokenService: TokenService,
     private readonly dataSource: DataSource,
   ) {}
 
-  async generateAccessToken(userId: number) {
-    return this.jwtService.sign({ sub: String(userId) });
-  }
-
-  async generateRefreshToken(userId: number) {
-    return this.jwtService.sign(
-      { sub: userId },
-      {
-        secret: this.configService.get('JWT_REFRESH_SECRET'),
-        expiresIn: '7d',
-      },
-    );
-  }
-
-  async sendAuthResponse(
+  sendAuthResponse(
     req: Request,
     res: Response,
     payload: {
       accessToken: string;
       refreshToken: string;
+      user?: any;
     },
   ) {
     const isMobileApp = req.headers['x-client-type'] === 'mobile-app';
@@ -63,30 +41,12 @@ export class AuthService {
 
       return res.status(200).json({
         accessToken: payload.accessToken,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        user: payload.user,
       });
     }
 
     return res.status(200).json(payload);
-  }
-
-  async refreshToken(token: string): Promise<{
-    accessToken: string;
-    refreshToken: string;
-  }> {
-    const decoded = this.jwtService.verify(token, {
-      secret: this.configService.get('JWT_REFRESH_SECRET'),
-    });
-
-    const user = await this.usersService.getUserById(decoded.sub);
-    if (!user || user.refreshToken !== token) {
-      throw new UnauthorizedException('Invalid or expired refresh token');
-    }
-    const newAccessToken = await this.generateAccessToken(user.id);
-
-    return {
-      accessToken: newAccessToken,
-      refreshToken: token,
-    };
   }
 
   async validateUser(authPayloadDto: AuthPayloadDto) {
@@ -99,15 +59,15 @@ export class AuthService {
     const passwordIsMatch = await argon2.verify(findUser.password, authPayloadDto.password);
 
     if (passwordIsMatch) {
-      return findUser.id;
+      return { id: findUser.id, profile: findUser.profile, role: UserRole.USER };
     } else {
       throw new NotFoundException('Incorrect credentials');
     }
   }
 
   async login(userId: number) {
-    const accessToken = await this.generateAccessToken(userId);
-    const refreshToken = await this.generateRefreshToken(userId);
+    const accessToken = this.tokenService.generateAccessToken(userId);
+    const refreshToken = this.tokenService.generateRefreshToken(userId);
 
     await this.usersService.updateRefreshToken(userId, refreshToken);
 
@@ -135,8 +95,8 @@ export class AuthService {
 
     const user = await this.createUserWithProfile(userData);
 
-    const accessToken = await this.generateAccessToken(user.id);
-    const refreshToken = await this.generateRefreshToken(user.id);
+    const accessToken = this.tokenService.generateAccessToken(user.id);
+    const refreshToken = this.tokenService.generateRefreshToken(user.id);
     await this.usersService.updateRefreshToken(user.id, refreshToken);
 
     return {
@@ -158,8 +118,8 @@ export class AuthService {
     };
     const user = await this.createUserWithProfile(userData);
 
-    const accessToken = await this.generateAccessToken(user.id);
-    const refreshToken = await this.generateRefreshToken(user.id);
+    const accessToken = this.tokenService.generateAccessToken(user.id);
+    const refreshToken = this.tokenService.generateRefreshToken(user.id);
     await this.usersService.updateRefreshToken(user.id, refreshToken);
 
     return {
@@ -186,7 +146,7 @@ export class AuthService {
         manager,
       );
 
-      return this.usersService.createUserTransactional(
+      const user = await this.usersService.createUserTransactional(
         {
           email: params.email,
           password: params.password ? await argon2.hash(params.password) : undefined,
@@ -196,6 +156,10 @@ export class AuthService {
         },
         manager,
       );
+
+      profile.user = user;
+      await manager.save(profile);
+      return user;
     });
   }
 
@@ -206,65 +170,5 @@ export class AuthService {
       return { exists: false, message: 'Invalid email' };
     }
     return this.usersService.findByEmail(email);
-  }
-
-  async changePassword(userId: number, oldPassword: string, newPassword: string) {
-    const user = await this.usersService.getUserById(userId);
-    if (!user) {
-      throw new NotFoundException('User not found...');
-    }
-    const passwordMatch = await argon2.verify(oldPassword, newPassword);
-    if (!passwordMatch) {
-      throw new UnauthorizedException('Wrong credentials');
-    }
-    await this.usersService.updatePassword(userId, newPassword);
-  }
-
-  async resetPassword(userId: number, newPassword: string, resetToken: string) {
-    const user = await this.usersService.getUserById(userId);
-    if (!user) {
-      throw new NotFoundException('User not found...');
-    }
-
-    if (!user.resetPasswordToken || resetToken !== user.resetPasswordToken) {
-      throw new UnauthorizedException('Invalid or expired token');
-    }
-
-    if (user.tokenExpiredDate && user.tokenExpiredDate < new Date()) {
-      throw new UnauthorizedException('Reset token expired');
-    }
-
-    await this.usersService.updatePassword(user.id, newPassword);
-
-    await this.usersService.updateUserToken(user.id, {
-      resetPasswordToken: null,
-      tokenExpiredDate: null,
-    });
-  }
-
-  async forgotPassword(email: string) {
-    const user = await this.usersService.findByEmail(email);
-    if (!user) {
-      return { message: 'If this user exists, they will receive an email!' };
-    }
-
-    const expiryDate = new Date();
-    expiryDate.setHours(expiryDate.getHours() + 1);
-
-    const resetToken = generateToken(32);
-
-    await this.usersService.updateUserToken(user.id, {
-      resetPasswordToken: null,
-      tokenExpiredDate: null,
-    });
-
-    await this.usersService.updateUserToken(user.id, {
-      resetPasswordToken: resetToken,
-      tokenExpiredDate: expiryDate,
-    });
-
-    await this.mailService.sendPasswordResetEmail(email, user.id, resetToken);
-
-    return { message: 'If this user exists, they will receive an email' };
   }
 }

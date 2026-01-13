@@ -10,18 +10,19 @@ import { JwtStrategy } from './strategies/jwt-strategy';
 import { RolesGuard } from './guards/roles-guard';
 import { MailService } from './services/mail.service';
 import { VerificationService } from './services/verification.service';
-import { CacheModule } from '../cache/cache.module'; 
+import { TokenService } from './services/token.service';
+import { PasswordService } from './services/password.service';
+import { WsJwtAuthGuard } from './guards/ws-jwt-auth.guard';
 
 @Module({
   imports: [
     UserModule,
     PassportModule,
-    CacheModule, 
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get('JWT_SECRET'),
-        signOptions: { expiresIn: '15m' },
+        signOptions: { expiresIn: '25sec' },
       }),
       inject: [ConfigService],
     }),
@@ -33,7 +34,11 @@ import { CacheModule } from '../cache/cache.module';
     LocalStrategy,
     JwtStrategy,
     RolesGuard,
+    TokenService,
+    PasswordService,
+    WsJwtAuthGuard,
   ],
+  exports: [WsJwtAuthGuard, JwtModule],
   controllers: [AuthController],
 })
 export class AuthModule {}

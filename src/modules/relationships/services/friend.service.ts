@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Friend } from '../entities/friend.entity';
@@ -27,5 +27,26 @@ export class FriendService {
     if (isAlreadyFriend) return;
     const newFriendship = this.friendRepository.create({ userOneId, userTwoId });
     await this.friendRepository.save(newFriendship);
+  }
+
+  async getFriends(userId: number): Promise<Friend[]> {
+    return this.friendRepository.find({
+      where: [{ userOneId: userId }, { userTwoId: userId }],
+    });
+  }
+
+  async removeFriend(currentUserId: number, friendIdToRemove: number): Promise<void> {
+    const { userOneId, userTwoId } = normalizeIds(currentUserId, friendIdToRemove);
+
+    const deleteResult = await this.friendRepository.delete({
+      userOneId: userOneId,
+      userTwoId: userTwoId,
+    });
+
+    if (deleteResult.affected === 0) {
+      throw new NotFoundException(
+        `Friendship between users ${currentUserId} and ${friendIdToRemove} not found.`,
+      );
+    }
   }
 }
