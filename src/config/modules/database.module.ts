@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
 import { AppConfig } from '../configuration.interface';
 
@@ -23,16 +22,7 @@ import { AppConfig } from '../configuration.interface';
         };
       },
     }),
-
-    MongooseModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService<AppConfig>) => {
-        const mongoUri = config.get<string>('mongo');
-        if (!mongoUri) throw new Error('Mongo URI missing!');
-        return { uri: mongoUri };
-      },
-    }),
   ],
-  exports: [TypeOrmModule, MongooseModule],
+  exports: [TypeOrmModule],
 })
 export class DatabaseModule {}

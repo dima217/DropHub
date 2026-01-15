@@ -5,13 +5,16 @@ import { ConfigModule } from '@nestjs/config';
 import { configuration } from './config/configuration';
 import { ScheduleModule } from '@nestjs/schedule';
 import { UserModule } from './modules/user/user.module';
-import { FileModule } from './modules/file/files.module';
-import { RoomModule } from './modules/room/room.module';
-import { UserStorageModule } from './modules/storage/user_storage.module';
-import { S3Module } from './modules/s3/s3.module';
+import { FileClientModule } from './modules/file-client/file-client.module';
+import { AuthModule } from './auth/auth.module';
+import { PermissionModule } from './modules/permission/permission.module';
+import { TokenModule } from './modules/token/token.module';
 import { BullConfigModule } from './config/modules/bull-config.module';
 import { DatabaseModule } from './config/modules/database.module';
 import { AppConfig } from './config/configuration.interface';
+import { FileModule } from './modules/file/files.module';
+import { RoomModule } from './modules/room/room.module';
+import { UserStorageModule } from './modules/storage/user_storage.module';
 
 @Module({
   imports: [
@@ -26,10 +29,13 @@ import { AppConfig } from './config/configuration.interface';
     ScheduleModule.forRoot(),
 
     UserModule,
+    AuthModule,
+    PermissionModule,
+    TokenModule,
+    FileClientModule,
     FileModule,
     RoomModule,
     UserStorageModule,
-    S3Module,
   ],
   controllers: [AppController],
   providers: [AppService],

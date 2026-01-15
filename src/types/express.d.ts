@@ -1,7 +1,5 @@
+import { LoginUserPayload, UserPayload } from '@application/user/types';
 import { Request } from 'express';
-import { Profile } from 'src/modules/user/entities/profile.entity';
-
-import { UserRole } from 'src/modules/user/entities/user.entity';
 
 declare module 'express' {
   export interface Request {
@@ -9,14 +7,18 @@ declare module 'express' {
   }
 }
 interface RequestWithUser extends Request {
-  user: {
-    id: number;
-    role: UserRole;
-    profileId: number;
-  };
+  user: UserPayload;
+}
+
+interface LoginRequestUser extends Request {
+  user: LoginUserPayload;
 }
 
 interface RefreshTokenRequest extends Request {
   refreshToken: string;
   isBrowser: boolean;
+  cookies?: { [key: string]: string };
+  headers: {
+    [key: string]: string | undefined;
+  };
 }

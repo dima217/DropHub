@@ -5,21 +5,23 @@ import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import * as cookieParser from 'cookie-parser';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  /* app.connectMicroservice<RmqOptions>({
+  // Подключаем микросервисы для обработки запросов от File Service
+  app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {
-      urls: [`amqp://rabbitmq:5672`],
-      queue: 'create_charge_psp',
-      prefetchCount: 1,
-      persistent: true,
-      noAck: false,
+      urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
+      queue: 'permission_service_queue',
       queueOptions: {
         durable: true,
       },
+      prefetchCount: 1,
+      persistent: true,
+      noAck: false,
       socketOptions: {
         heartbeatIntervalInSeconds: 60,
         reconnectTimeInSeconds: 5,
@@ -27,7 +29,25 @@ async function bootstrap() {
     },
   });
 
-  await app.startAllMicroservices(); */
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.RMQ,
+    options: {
+      urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
+      queue: 'token_service_queue',
+      queueOptions: {
+        durable: true,
+      },
+      prefetchCount: 1,
+      persistent: true,
+      noAck: false,
+      socketOptions: {
+        heartbeatIntervalInSeconds: 60,
+        reconnectTimeInSeconds: 5,
+      },
+    },
+  });
+
+  await app.startAllMicroservices();
 
   app.use(cookieParser);
   app.useGlobalPipes(new ValidationPipe());

@@ -10,7 +10,7 @@ export enum AccessRole {
   READ_WRITE = 'RW',
 }
 
-interface TokenPayload {
+export interface TokenPayload {
   tokenId: string;
   resourceId: string;
   resourceType: 'file' | 'room' | 'storage' | 'invite';

@@ -7,12 +7,14 @@ import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './strategies/local-strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt-strategy';
+import { GoogleStrategy } from './strategies/google-strategy';
 import { RolesGuard } from './guards/roles-guard';
 import { MailService } from './services/mail.service';
 import { VerificationService } from './services/verification.service';
 import { TokenService } from './services/token.service';
 import { PasswordService } from './services/password.service';
 import { WsJwtAuthGuard } from './guards/ws-jwt-auth.guard';
+import { GoogleAuthService } from './services/google-auth.service';
 
 @Module({
   imports: [
@@ -29,10 +31,12 @@ import { WsJwtAuthGuard } from './guards/ws-jwt-auth.guard';
   ],
   providers: [
     AuthService,
+    GoogleAuthService,
     VerificationService,
     MailService,
     LocalStrategy,
     JwtStrategy,
+    GoogleStrategy,
     RolesGuard,
     TokenService,
     PasswordService,

@@ -1,21 +1,13 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { TokenService } from '../services/token.service';
-import { GenerateTokenDto } from '../dto/generate-token.dto';
-import { RevokeTokenDto } from '../dto/revoke-token.dto';
-import { AuthGuard } from '@nestjs/passport';
+import { Controller } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
+import { TokenService, TokenPayload } from '../services/token.service';
 
-@UseGuards(AuthGuard)
-@Controller('/token')
+@Controller()
 export class TokenController {
   constructor(private readonly tokenService: TokenService) {}
-  @Post('/generate')
-  async generatePublicLink(@Body() generateTokenDto: GenerateTokenDto) {
-    const token = await this.tokenService.generatePublicLink(generateTokenDto);
-    return { success: true, token: token };
-  }
 
-  @Post('/revoke')
-  async revokeToken(@Body() revokeTokenDto: RevokeTokenDto) {
-    await this.tokenService.revokeToken(revokeTokenDto.token);
+  @MessagePattern('token.validate')
+  async validateToken(@Payload() data: { token: string }): Promise<TokenPayload> {
+    return this.tokenService.validateToken(data.token);
   }
 }

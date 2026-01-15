@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { TokenService } from './services/token.service';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TokenController } from './controllers/token.controller';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     }),
     CacheModule,
   ],
+  controllers: [TokenController],
   providers: [TokenService],
   exports: [TokenService],
 })

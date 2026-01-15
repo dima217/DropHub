@@ -59,7 +59,13 @@ export class AuthService {
     const passwordIsMatch = await argon2.verify(findUser.password, authPayloadDto.password);
 
     if (passwordIsMatch) {
-      return { id: findUser.id, profile: findUser.profile, role: UserRole.USER };
+      // Получаем полного пользователя с профилем
+      const fullUser = await this.dataSource.getRepository(User).findOne({
+        where: { id: findUser.id },
+        relations: ['profile'],
+      });
+
+      return { id: findUser.id, profile: fullUser?.profile, role: UserRole.USER };
     } else {
       throw new NotFoundException('Incorrect credentials');
     }

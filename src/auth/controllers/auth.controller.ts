@@ -13,6 +13,8 @@ import { RegisterUserDto } from '../dto/register.dto';
 import { AuthPayloadDto } from '../dto/auth.dto';
 import { TokenService } from '../services/token.service';
 import { PasswordService } from '../services/password.service';
+import { GoogleMobileAuthDto } from '../dto/google-mobile-auth.dto';
+import { GoogleAuthService } from '../services/google-auth.service';
 
 @Controller('auth')
 export class AuthController {
@@ -23,6 +25,7 @@ export class AuthController {
     private readonly passwordService: PasswordService,
     private readonly tokenService: TokenService,
     private readonly verificationService: VerificationService,
+    private readonly googleAuthService: GoogleAuthService,
   ) {}
 
   @Post('login')
@@ -82,6 +85,16 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production',
     });
     res.redirect(`http://localhost:3000/auth/callback?token=${accessToken}`);
+  }
+
+  @Post('google/mobile')
+  async googleAuthMobile(
+    @Body() body: GoogleMobileAuthDto,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    const payload = await this.googleAuthService.verifyGoogleIdToken(body.idToken);
+    return this.authService.sendAuthResponse(request, response, payload);
   }
 
   @Post('check-email')

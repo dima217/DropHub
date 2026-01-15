@@ -8,7 +8,7 @@ import {
   Get,
   Param,
 } from '@nestjs/common';
-import { StorageService } from '../services/storage.service';
+import { StorageClientService } from '../../file-client/services/storage-client.service';
 import { AuthGuard } from '@nestjs/passport';
 import type { RequestWithUser } from 'src/types/express';
 import { GetStorageDto } from '../dto/get-storage.dto';
@@ -18,11 +18,11 @@ import { DeleteItemDto } from '../dto/delete-item.dto';
 @Controller('storage')
 @UseGuards(AuthGuard)
 export class UserStorageController {
-  constructor(private readonly userStorageService: StorageService) {}
+  constructor(private readonly storageClient: StorageClientService) {}
 
   @Post('/')
   async getUserStorages(@Req() req: RequestWithUser) {
-    return this.userStorageService.getStoragesByUserId(req.user.id);
+    return this.storageClient.getStoragesByUserId(req.user.id);
   }
 
   @Post('full-tree')
@@ -30,7 +30,7 @@ export class UserStorageController {
     if (!body.storageId) {
       throw new BadRequestException('Storage ID is required.');
     }
-    return this.userStorageService.getFullStorageStructure(body.storageId, req.user.id);
+    return this.storageClient.getFullStorageStructure(body.storageId, req.user.id);
   }
 
   @Post('structure')
@@ -45,7 +45,7 @@ export class UserStorageController {
       userId: req.user.id,
     };
 
-    return this.userStorageService.getStorageStructure(params);
+    return this.storageClient.getStorageStructure(params);
   }
 
   @Post('delete-item')
@@ -60,16 +60,16 @@ export class UserStorageController {
       userId: req.user.id,
     };
 
-    return this.userStorageService.deleteStorageItem(params);
+    return this.storageClient.deleteStorageItem(params);
   }
 }
 
 @Controller('public/storage')
 export class PublicStorageController {
-  constructor(private readonly userStorageService: StorageService) {}
+  constructor(private readonly storageClient: StorageClientService) {}
 
   @Get(':token')
   async getItemByToken(@Param('token') token: string) {
-    return this.userStorageService.getStorageItemByToken(token);
+    return this.storageClient.getStorageItemByToken(token);
   }
 }

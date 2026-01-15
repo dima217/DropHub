@@ -1,22 +1,18 @@
 import { Body, Controller, Post, UseInterceptors, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
-import { UploadService } from '../services/upload/upload.service';
+import { FileClientService } from '../../file-client/services/file-client.service';
 import { UploadInitMultipartDto } from '../dto/upload/upload-init-multipart.dto';
 import { UploadCompleteDto } from '../dto/upload/upload-complete.dto';
 import { UserIpInterceptor } from 'src/common/interceptors/user.ip.interceptor';
 import { AuthGuard } from '@nestjs/passport';
 import type { RequestWithUser } from 'src/types/express';
-import { MultipartUploadService } from '../services/upload/multipart.upload.service';
 import { UploadByTokenDto } from '../dto/upload/upload-token.dto';
 import { UploadToRoomDto } from '../dto/upload/upload-room.dto';
 import { UploadToStorageDto } from '../dto/upload/upload-storage.dto';
 
 @Controller('/upload')
 export class FileUploadController {
-  constructor(
-    private readonly uploadService: UploadService,
-    private readonly multipartUploadService: MultipartUploadService,
-  ) {}
+  constructor(private readonly fileClient: FileClientService) {}
 
   @Post('auth/room')
   @UseGuards(AuthGuard)
@@ -31,7 +27,7 @@ export class FileUploadController {
       userId: req.user.id,
     };
 
-    const result = await this.uploadService.uploadFileToRoom(uploadData);
+    const result = await this.fileClient.uploadFileToRoom(uploadData);
     return { success: true, url: result.url };
   }
 
@@ -48,7 +44,7 @@ export class FileUploadController {
       userId: req.user.id,
     };
 
-    const result = await this.uploadService.uploadFileToStorage(uploadData);
+    const result = await this.fileClient.uploadFileToStorage(uploadData);
     return { success: true, url: result.url };
   }
 
@@ -60,21 +56,19 @@ export class FileUploadController {
       uploaderIp: req.userIp,
     };
 
-    const result = await this.uploadService.uploadFileByToken(uploadData);
+    const result = await this.fileClient.uploadFileByToken(uploadData);
     return { success: true, url: result.url };
   }
 
   @Post('multipart/init')
   async uploadMultipartInit(@Body() body: UploadInitMultipartDto, @Req() req: Request) {
-    const initRes = await this.multipartUploadService.initUploadMultipart(body, req.ip ?? 'none');
+    const initRes = await this.fileClient.initMultipartUpload(body, req.ip ?? 'none');
     return { success: true, data: initRes };
   }
 
   @Post('multipart/complete')
   async uploadComplete(@Body() body: UploadCompleteDto, @Req() req: Request) {
-    const ip = req.ip;
-    await this.multipartUploadService.completeMultipart(body);
-
+    await this.fileClient.completeMultipartUpload(body);
     return { success: true, message: 'Multipart upload completed' };
   }
 }

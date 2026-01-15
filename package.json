@@ -62,6 +62,7 @@
     "cookie-parser": "^1.4.7",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
+    "google-auth-library": "^10.5.0",
     "ioredis": "^5.6.0",
     "keyv": "^5.3.2",
     "mongoose": "^8.18.0",
@@ -126,6 +127,18 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/$1",
+      "^@auth/(.*)$": "<rootDir>/auth/$1",
+      "^@modules/(.*)$": "<rootDir>/modules/$1",
+      "^@common/(.*)$": "<rootDir>/common/$1",
+      "^@config/(.*)$": "<rootDir>/config/$1",
+      "^@constants/(.*)$": "<rootDir>/constants/$1",
+      "^@utils/(.*)$": "<rootDir>/utils/$1",
+      "^@types/(.*)$": "<rootDir>/types/$1",
+      "^@cache/(.*)$": "<rootDir>/cache/$1",
+      "^@workers/(.*)$": "<rootDir>/workers/$1"
+    }
   }
 }
