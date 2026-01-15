@@ -58,8 +58,18 @@ export class User {
   @Column({ type: 'timestamp', nullable: true })
   tokenExpiredDate: Date | null;
 
+  @Column({ type: 'boolean', default: false })
   @IsBoolean()
   isOAuthUser: boolean;
+
+  @Column({ type: 'varchar', nullable: true })
+  googleUserId: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  googleAccessToken: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  googleRefreshToken: string | null;
 
   @OneToOne(() => Profile, (profile) => profile.user, { cascade: true })
   @JoinColumn()

@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthPayloadDto } from '../dto/auth.dto';
 import { UsersService } from '../../modules/user/services/user.service';
 import * as argon2 from 'argon2';
@@ -59,7 +65,6 @@ export class AuthService {
     const passwordIsMatch = await argon2.verify(findUser.password, authPayloadDto.password);
 
     if (passwordIsMatch) {
-      // Получаем полного пользователя с профилем
       const fullUser = await this.dataSource.getRepository(User).findOne({
         where: { id: findUser.id },
         relations: ['profile'],
@@ -99,29 +104,6 @@ export class AuthService {
     const existingUser = await this.usersService.findByEmail(dto.email);
     if (existingUser) throw new BadRequestException('User already exists');
 
-    const user = await this.createUserWithProfile(userData);
-
-    const accessToken = this.tokenService.generateAccessToken(user.id);
-    const refreshToken = this.tokenService.generateRefreshToken(user.id);
-    await this.usersService.updateRefreshToken(user.id, refreshToken);
-
-    return {
-      accessToken,
-      refreshToken,
-    };
-  }
-
-  async findOrCreateUser(dto: {
-    email: string;
-    firstName: string;
-    lastName: string;
-    picture?: string;
-  }) {
-    const userData = {
-      ...dto,
-      role: UserRole.USER,
-      isOAuthUser: true,
-    };
     const user = await this.createUserWithProfile(userData);
 
     const accessToken = this.tokenService.generateAccessToken(user.id);

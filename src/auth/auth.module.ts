@@ -7,7 +7,6 @@ import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './strategies/local-strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt-strategy';
-import { GoogleStrategy } from './strategies/google-strategy';
 import { RolesGuard } from './guards/roles-guard';
 import { MailService } from './services/mail.service';
 import { VerificationService } from './services/verification.service';
@@ -36,7 +35,6 @@ import { GoogleAuthService } from './services/google-auth.service';
     MailService,
     LocalStrategy,
     JwtStrategy,
-    GoogleStrategy,
     RolesGuard,
     TokenService,
     PasswordService,

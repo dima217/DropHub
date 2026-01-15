@@ -1,11 +1,21 @@
-import { Body, Controller, Get, Logger, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Logger,
+  Post,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
 import { LocalGuard } from '../guards/local-guard';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { RequestEmailCodeDto } from '../dto/request-email-code.dto';
 import { VerifyEmailCodeDto } from '../dto/verify-email-code.dto';
 import { VerificationService } from '../services/verification.service';
-import type { LoginRequestUser, RefreshTokenRequest } from 'src/types/express';
+import type { LoginRequestUser, RefreshTokenRequest, RequestWithUser } from 'src/types/express';
 import type { Request, Response } from 'express';
 import { RefreshTokenGuard } from '../guards/refresh-token-guard';
 import { AuthGuard } from '@nestjs/passport';
@@ -14,6 +24,7 @@ import { AuthPayloadDto } from '../dto/auth.dto';
 import { TokenService } from '../services/token.service';
 import { PasswordService } from '../services/password.service';
 import { GoogleMobileAuthDto } from '../dto/google-mobile-auth.dto';
+import { GoogleAuthCodeDto } from '../dto/google-auth-code.dto';
 import { GoogleAuthService } from '../services/google-auth.service';
 
 @Controller('auth')
@@ -70,23 +81,6 @@ export class AuthController {
     return payload;
   }
 
-  @Get('google')
-  @UseGuards(AuthGuard('google'))
-  async googleAuth() {}
-
-  @Get('google/callback')
-  @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req, @Res() res: Response) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const { refreshToken, accessToken } = await this.authService.findOrCreateUser(req.user);
-
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-    });
-    res.redirect(`http://localhost:3000/auth/callback?token=${accessToken}`);
-  }
-
   @Post('google/mobile')
   async googleAuthMobile(
     @Body() body: GoogleMobileAuthDto,
@@ -95,6 +89,37 @@ export class AuthController {
   ) {
     const payload = await this.googleAuthService.verifyGoogleIdToken(body.idToken);
     return this.authService.sendAuthResponse(request, response, payload);
+  }
+
+  @Post('google/exchange-code')
+  async exchangeGoogleCode(
+    @Body() body: GoogleAuthCodeDto,
+    @Query('redirect_uri') redirectUri: string,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    const payload = await this.googleAuthService.handleGoogleAuthCode(body.code, redirectUri);
+    return this.authService.sendAuthResponse(request, response, payload);
+  }
+
+  @Post('google/refresh-token')
+  @UseGuards(AuthGuard)
+  async refreshGoogleToken(@Req() req: RequestWithUser) {
+    const newAccessToken = await this.googleAuthService.refreshGoogleAccessToken(req.user.id);
+    if (!newAccessToken) {
+      throw new UnauthorizedException('No Google refresh token available');
+    }
+    return { googleAccessToken: newAccessToken };
+  }
+
+  @Post('google/get-valid-token')
+  @UseGuards(AuthGuard)
+  async getValidGoogleToken(@Req() req: RequestWithUser) {
+    const accessToken = await this.googleAuthService.getValidGoogleAccessToken(req.user.id);
+    if (!accessToken) {
+      throw new UnauthorizedException('No Google tokens available');
+    }
+    return { googleAccessToken: accessToken };
   }
 
   @Post('check-email')
