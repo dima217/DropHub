@@ -1,6 +1,7 @@
 // src/token/token.service.ts
 
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { CacheService } from 'src/cache/cache.service';
 
@@ -12,7 +13,7 @@ export enum AccessRole {
 interface TokenPayload {
   tokenId: string;
   resourceId: string;
-  resourceType: 'file' | 'room' | 'storage';
+  resourceType: 'file' | 'room' | 'storage' | 'invite';
   role: 'R' | 'RW';
   exp: number;
 }
@@ -24,6 +25,7 @@ export class TokenService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly cacheService: CacheService,
+    private readonly configService: ConfigService,
   ) {}
 
   async generateToken(
@@ -58,11 +60,10 @@ export class TokenService {
 
   async generatePublicLink(
     payload: Omit<TokenPayload, 'tokenId' | 'exp'>,
-    resourceBaseUrl: string,
     expiresIn: string = '7d',
   ): Promise<{ token: string; url: string }> {
     const token = await this.generateToken(payload, expiresIn);
-    const url = `${resourceBaseUrl}/${token}`;
+    const url = `${this.configService.get('BASE_URL')}/${token}`;
     return { token, url };
   }
 

@@ -1,32 +1,16 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { MailService } from './mail.service';
-import { CacheService } from 'src/cache/cache.service';
-
-const EMAIL_CODE_TTL = 600;
-const EMAIL_CODE_PREFIX = 'emailCode:';
 
 @Injectable()
 export class VerificationService {
-  constructor(
-    private readonly mailService: MailService,
-    private readonly cacheService: CacheService,
-  ) {}
+  constructor(private readonly mailService: MailService) {}
 
-  async sendEmailCode(email: string) {
-    const cacheKey = `${EMAIL_CODE_PREFIX}${email}`;
-    const existingCode = await this.cacheService.get(cacheKey);
-
-    if (existingCode) {
-      throw new BadRequestException('Code already sent, wait before retrying');
-    }
-
-    const code = this.generateCode();
-
-    await this.cacheService.set(cacheKey, code, EMAIL_CODE_TTL);
+  async sendEmailCode(email: string, code?: string) {
+    const verificationCode = code || this.generateCode();
 
     const html = `
       <p style="font-size: 16px;">
-        Your verification code is: <strong>${code}</strong>
+        Your verification code is: <strong>${verificationCode}</strong>
       </p>
       <p style="color: #888; font-size: 12px;">
         This code is valid for 10 minutes.
@@ -34,18 +18,12 @@ export class VerificationService {
     `;
 
     await this.mailService.sendRawHtml(email, 'Email Verification Code', html);
+
+    return verificationCode;
   }
 
-  async verifyEmailCode(email: string, code: string): Promise<boolean> {
-    const cacheKey = `${EMAIL_CODE_PREFIX}${email}`;
-    const cachedCode = await this.cacheService.get(cacheKey);
-
-    if (!cachedCode || cachedCode !== code) {
-      throw new BadRequestException('Invalid or expired code');
-    }
-
-    await this.cacheService.delete(cacheKey);
-    return true;
+  verifyEmailCode(providedCode: string, actualCode: string): boolean {
+    return providedCode === actualCode;
   }
 
   private generateCode(): string {

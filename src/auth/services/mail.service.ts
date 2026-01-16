@@ -1,46 +1,41 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 
+interface EmailOptions {
+  to: string;
+  subject: string;
+  htmlContent: string;
+}
+
 @Injectable()
 export class MailService {
-  private sendGridApiKey: string | undefined;
+  private sendGridApiKey: string;
+  private fromEmail: string;
+  private baseUrl: string;
 
   constructor(private configService: ConfigService) {
-    this.sendGridApiKey = this.configService.get<string>('SENDGRID_API_KEY');
+    const baseUrl = this.configService.get<string>('BASE_URL');
+    const apiKey = this.configService.get<string>('SENDGRID_API_KEY');
+    const from = this.configService.get<string>('SENDGRID_FROM');
 
-    if (!this.sendGridApiKey) {
-      throw new Error('SENDGRID_API_KEY is not defined');
-    }
+    if (!apiKey) throw new Error('SENDGRID_API_KEY is not defined');
+    if (!baseUrl) throw new Error('SENDGRID_API_KEY is not defined');
+    if (!from) throw new Error('SENDGRID_FROM is not defined');
+
+    this.sendGridApiKey = apiKey;
+    this.fromEmail = from;
+    this.baseUrl = baseUrl;
   }
 
-  private async sendEmail({
-    email,
-    subject,
-    htmlContent,
-  }: {
-    email: string;
-    subject: string;
-    htmlContent: string;
-  }) {
+  private async sendEmail({ to, subject, htmlContent }: EmailOptions) {
     const url = 'https://api.sendgrid.com/v3/mail/send';
 
     const msg = {
-      personalizations: [
-        {
-          to: [{ email }],
-          subject,
-        },
-      ],
-      from: {
-        email: process.env.SENDGRID_FROM || 'noreply@dimapikull2.edu.andarrr.co.uk',
-      },
-      content: [
-        {
-          type: 'text/html',
-          value: htmlContent,
-        },
-      ],
+      personalizations: [{ to: [{ email: to }], subject }],
+      from: { email: this.fromEmail },
+      content: [{ type: 'text/html', value: htmlContent }],
     };
 
     try {
@@ -51,16 +46,25 @@ export class MailService {
         },
       });
       console.log('Email sent successfully:', response.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending email:', error.response?.data || error.message);
       throw new Error('Failed to send email');
     }
   }
 
   async sendPasswordResetEmail(email: string, userId: number, token: string) {
-    const resetLink = `https://dimapikull2.edu.andarrr.co.uk/auth/reset-password?userId=${userId}&resetToken=${token}`;
+    const resetLink = `${this.baseUrl}/auth/reset-password?userId=${userId}&resetToken=${token}`;
+    const htmlContent = this.buildResetPasswordEmail(resetLink);
 
-    const resetEmail = `
+    await this.sendEmail({
+      to: email,
+      subject: 'Reset your password',
+      htmlContent,
+    });
+  }
+
+  private buildResetPasswordEmail(resetLink: string): string {
+    return `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9;">
         <h2 style="text-align: center; color: #333;">Reset Your Password</h2>
         <p style="font-size: 16px; color: #333;">
@@ -76,19 +80,9 @@ export class MailService {
         </p>
       </div>
     `;
-
-    await this.sendEmail({
-      email,
-      subject: 'Reset password',
-      htmlContent: resetEmail,
-    });
   }
 
-  async sendRawHtml(email: string, subject: string, html: string) {
-    await this.sendEmail({
-      email,
-      subject,
-      htmlContent: html,
-    });
+  async sendRawHtml(email: string, subject: string, htmlContent: string) {
+    await this.sendEmail({ to: email, subject, htmlContent });
   }
 }
