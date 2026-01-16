@@ -2,16 +2,21 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import * as argon2 from 'argon2';
-import { JwtService } from '@nestjs/jwt';
 import { CacheService } from 'src/cache/cache.service';
 import { User } from '../entities/user.entity';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { UpdateUserResetDto } from '../dto/update-user-reset.dto';
-import { UserUpdateProfileDTO } from '../dto/update-profile.dto';
-import { ProfileService } from './profile.service';
 
 const CACHE_TTL = 300;
-const USER_SELECT_FIELDS = ['id', 'email', 'profile'] as const;
+const USER_SELECT_FIELDS = [
+  'id',
+  'uuid',
+  'email',
+  'role',
+  'isBanned',
+  'isOAuthUser',
+  'profileId',
+] as const;
 
 @Injectable()
 export class UsersService {
@@ -19,7 +24,6 @@ export class UsersService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private readonly cacheService: CacheService,
-    private readonly profileService: ProfileService,
   ) {}
 
   async findAllPaginated(page: number, limit: number): Promise<[User[], number]> {
@@ -60,6 +64,13 @@ export class UsersService {
     });
   }
 
+  async findUserForContact(email: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { email },
+      select: ['id', 'email', 'profileId'],
+    });
+  }
+
   async findByUuid(uuid: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { uuid },
@@ -85,20 +96,6 @@ export class UsersService {
     await this.cacheService.deleteByPattern('users:*');
 
     return updatedUser;
-  }
-
-  async updateUserProfile(id: number, dto: UserUpdateProfileDTO): Promise<User> {
-    const user = await this.userRepository.findOneBy({ id });
-
-    if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
-    }
-    await this.profileService.updateProfile(user.profile, dto);
-    const savedUser = await this.userRepository.save(user);
-
-    await this.cacheService.deleteByPattern(`user:${id}`);
-
-    return savedUser;
   }
 
   async updatePassword(id: number, newPassword: string): Promise<void> {

@@ -1,35 +1,31 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
-import { Request } from "express";
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { RefreshTokenRequest } from 'src/types/express';
 
 @Injectable()
 export class RefreshTokenGuard implements CanActivate {
-    canActivate(context: ExecutionContext): boolean {
-        const request = context.switchToHttp().getRequest<Request>();
+  canActivate(context: ExecutionContext): boolean {
+    const request = context.switchToHttp().getRequest<RefreshTokenRequest>();
 
-        let token: string | undefined;
+    let token: string | undefined;
+    const isMobileApp = request.headers['x-client-type'] === 'mobile-app';
+    const isBrowser = !isMobileApp;
 
-        const userAgent = request.headers['user-agent'] || '';
-        const accept = request.headers['accept'] || '';
-    
-        const isBrowser = /Mozilla|Chrome|Safari|Firefox|Edge|Opera/i.test(userAgent) 
-        && accept.includes('text/html');
-    
-        if (isBrowser) {
-          token = request.cookies?.['refreshToken'];
-        } else {
-            const authHeader = request.headers['authorization'];
-            if (authHeader?.startsWith('Bearer ')) {
-                token = authHeader.slice(7);
-            }
-        }
-
-        if (!token) {
-            throw new UnauthorizedException('No refresh token provided');
-        }
-
-        (request as any).refreshToken = token;
-        (request as any).isBrowser = isBrowser;
-        
-        return true;
+    if (isBrowser) {
+      token = request.cookies?.['refreshToken'];
+    } else {
+      const authHeader = request.headers['authorization'];
+      if (authHeader?.startsWith('Bearer ')) {
+        token = authHeader.slice(7);
+      }
     }
+
+    if (!token) {
+      throw new UnauthorizedException('No refresh token provided');
+    }
+
+    request.refreshToken = token;
+    request.isBrowser = isBrowser;
+
+    return true;
+  }
 }

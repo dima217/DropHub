@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { FileUploadStatus } from 'src/constants/interfaces';
+import { v4 as uuidv4 } from 'uuid';
 
 export type FileDocument = File & Document;
 

@@ -1,8 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  RelationId,
+} from 'typeorm';
 import { IsBoolean, IsEnum } from 'class-validator';
 import { Profile } from './profile.entity';
-import { StoragePermission } from 'src/modules/storage/entities/storage.permission';
+import { Permission } from 'src/modules/permission/entities/permission.entity';
 
 export enum UserRole {
   USER = 'user',
@@ -53,11 +61,14 @@ export class User {
   @IsBoolean()
   isOAuthUser: boolean;
 
-  @OneToOne(() => Profile, { cascade: true })
+  @OneToOne(() => Profile, (profile) => profile.user, { cascade: true })
   @JoinColumn()
   profile: Profile;
 
-  @OneToMany(() => StoragePermission, (perm) => perm, { cascade: true })
+  @RelationId((user: User) => user.profile)
+  profileId: number;
+
+  @OneToMany(() => Permission, (perm) => perm, { cascade: true })
   @JoinColumn()
-  permissions: StoragePermission;
+  permissions: Permission;
 }

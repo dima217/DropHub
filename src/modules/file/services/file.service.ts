@@ -5,12 +5,19 @@ import { File, FileDocument } from '../schemas/file.schema';
 import { Room, RoomDocument } from '../../room/schemas/room.schema';
 import { CreateFileMetaDto } from '../dto/create-file-meta.dto';
 import { DeleteFileDto } from '../dto/delete-file.dto';
-import { GetFilesDto } from '../dto/get-files.dto';
 import { FileUploadStatus } from 'src/constants/interfaces';
+import { UniversalPermissionService } from 'src/modules/permission/services/permission.service';
+import { AccessRole, ResourceType } from 'src/modules/permission/entities/permission.entity';
+
+interface AuthenticatedGettingFilesByRoomParams {
+  roomId: string;
+  userId: number;
+}
 
 @Injectable()
 export class FilesService {
   constructor(
+    private readonly permissionService: UniversalPermissionService,
     @InjectModel(File.name) private readonly fileModel: Model<FileDocument>,
     @InjectModel(Room.name) private readonly roomModel: Model<RoomDocument>,
   ) {}
@@ -27,12 +34,11 @@ export class FilesService {
   }
 
   async deleteFiles(dto: DeleteFileDto) {
-    if (!dto.files || dto.files.length === 0) {
+    if (!dto.fileIds || dto.fileIds.length === 0) {
       throw new BadRequestException('No files provided');
     }
 
-    const updatedFiles = await Promise.all(dto.files.map((fileId) => this.expireFile(fileId)));
-
+    const updatedFiles = await Promise.all(dto.fileIds.map((fileId) => this.expireFile(fileId)));
     return updatedFiles.filter(Boolean);
   }
 
@@ -47,23 +53,51 @@ export class FilesService {
     }
   }
 
-  async getFilesByRoomID(dto: GetFilesDto) {
-    if (!dto.roomId) {
+  async getFilesByRoomID(params: AuthenticatedGettingFilesByRoomParams) {
+    if (!params.roomId) {
       throw new BadRequestException('No roomId provided');
     }
 
+    await this.permissionService.verifyUserAccess(params.userId, params.roomId, ResourceType.ROOM, [
+      AccessRole.ADMIN,
+      AccessRole.READ,
+      AccessRole.WRITE,
+    ]);
+
     const room = await this.roomModel
-      .findById(dto.roomId)
-      .populate<{ files: FileDocument[] }>('files')
+      .findById(params.roomId)
+      .populate<{ files: FileDocument[] }>({
+        path: 'files',
+        select: '-__v-',
+        options: { lean: true },
+      })
       .exec();
 
     if (!room) {
       throw new NotFoundException("Room hasn't been found");
     }
 
-    const validFiles = room.files.filter((file) => !file.expiresAt || file.expiresAt > new Date());
+    room.files = room.files.filter((file) => !file.expiresAt || file.expiresAt > new Date());
 
-    return validFiles;
+    return room;
+  }
+
+  async getFileById(fileId: string) {
+    const fileDoc = await this.fileModel.findById(fileId).lean();
+
+    if (!fileDoc) {
+      throw new NotFoundException({ error: 'File does not exist' });
+    }
+
+    if (fileDoc.expiresAt && fileDoc.expiresAt <= new Date()) {
+      throw new NotFoundException({ error: 'File has expired' });
+    }
+
+    if (fileDoc.uploadSession.status !== FileUploadStatus.COMPLETE) {
+      throw new BadRequestException({ error: 'File upload not completed' });
+    }
+
+    return fileDoc;
   }
 
   async getFileByUploadId(uploadId: string) {

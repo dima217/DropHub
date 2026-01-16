@@ -1,22 +1,21 @@
-import { IUser, JUser } from '.././auth/types/types';
-
 import { Request } from 'express';
+import { Profile } from 'src/modules/user/entities/profile.entity';
+
+import { UserRole } from 'src/modules/user/entities/user.entity';
 
 declare module 'express' {
-    export interface Request {
-      userIp?: string;
-    }
-}
-
-interface AuthRequest extends Request {
-  user: IUser;
-}
-interface JwtAuthRequest extends Request {
-  user: JUser;
+  export interface Request {
+    userIp?: string;
+  }
 }
 interface RequestWithUser extends Request {
-  user: number; 
+  user: {
+    id: number;
+    role: UserRole;
+    profileId: number;
+  };
 }
+
 interface RefreshTokenRequest extends Request {
   refreshToken: string;
   isBrowser: boolean;

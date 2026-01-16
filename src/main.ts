@@ -3,17 +3,13 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
-import { RmqOptions, Transport } from '@nestjs/microservices';
-import multipart from '@fastify/multipart';
+import type { NestExpressApplication } from '@nestjs/platform-express';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestFastifyApplication>(
-    AppModule,
-    new FastifyAdapter()
-  );
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  app.connectMicroservice<RmqOptions>({
+  /* app.connectMicroservice<RmqOptions>({
     transport: Transport.RMQ,
     options: {
       urls: [`amqp://rabbitmq:5672`],
@@ -31,14 +27,15 @@ async function bootstrap() {
     },
   });
 
-  await app.startAllMicroservices();
-  
+  await app.startAllMicroservices(); */
+
+  app.use(cookieParser);
   app.useGlobalPipes(new ValidationPipe());
 
   const configService = app.get(ConfigService);
   const swaggerConfig = configService.get('swagger');
 
-  if (swaggerConfig?.enable) { 
+  if (swaggerConfig?.enable) {
     const swaggerOptions = new DocumentBuilder()
       .setTitle(swaggerConfig.title || 'API')
       .setDescription(swaggerConfig.description || 'API Documentation')
@@ -48,9 +45,7 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, swaggerOptions);
     SwaggerModule.setup(swaggerConfig.path || 'api', app, document);
   }
-;
   app.enableCors();
-  await app.register(multipart);
   const port = configService.get<number>('port') || 3000;
   await app.listen(port, '0.0.0.0');
 }

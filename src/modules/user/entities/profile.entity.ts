@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { IsBoolean, IsEnum } from 'class-validator';
-
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from './user.entity';
 @Entity()
 export class Profile {
   @ApiProperty({ description: 'Unique user identifier' })
@@ -18,4 +17,8 @@ export class Profile {
 
   @Column({ type: 'varchar', nullable: true })
   avatarUrl: string | null;
+
+  @OneToOne(() => User, (user) => user.profile)
+  @JoinColumn()
+  user: User;
 }

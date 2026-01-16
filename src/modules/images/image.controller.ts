@@ -3,42 +3,29 @@ import {
   Controller,
   Post,
   UseGuards,
-  Req,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { RolesGuard } from 'src/auth/guards/roles-guard';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-guard';
 import { Roles } from 'src/auth/common/decorators/role.decorator';
-import type { FastifyRequest } from 'fastify';
 import { ImageService } from './image.service';
-import { v4 as uuidv4 } from 'uuid';
-import { extname } from 'path';
-import * as fs from 'fs/promises';
 
-@Controller('/image')
+@Controller('image')
 export class ImageController {
   constructor(private readonly imageService: ImageService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post('upload')
   @Roles('admin', 'user')
-  async uploadAvatar(@Req() req: FastifyRequest) {
-    const mp = await req.file(); 
-
-    if (!mp) {
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadAvatar(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
       throw new BadRequestException('No file uploaded');
     }
 
-    const filename = `${uuidv4()}${extname(mp.filename)}`;
-    const filePath = `./uploads/avatars/${filename}`;
-
-    await fs.mkdir('./uploads/avatars', { recursive: true });
-    await fs.writeFile(filePath, await mp.toBuffer());
-
-    return this.imageService.handleAvatarUpload({
-      filename,
-      mimetype: mp.mimetype,
-      path: filePath,
-      size: mp.file.bytesRead,
-    });    
+    const result = await this.imageService.handleAvatarUpload(file);
+    return { success: true, avatarUrl: result.avatarUrl };
   }
 }

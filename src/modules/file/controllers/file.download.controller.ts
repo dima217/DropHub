@@ -1,21 +1,22 @@
-import { Body, Controller, Post, Res } from '@nestjs/common';
+import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
 import type { Response } from 'express';
-import { File, FileDocument } from '../schemas/file.schema';
-import { FileDownloadService } from '../services/file.download.service';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { DownloadFileDto } from '../dto/download/download.file.dto';
+import { DownloadService } from '../services/download/download.service';
+import { DownloadFileByTokenDto } from '../dto/download/download-file-token.dto';
 import { FilesService } from '../services/file.service';
+import { AuthGuard } from '@nestjs/passport';
+import type { RequestWithUser } from 'src/types/express';
+import { DownloadFileMultipartDto } from '../dto/download/download-file.multipart';
+import { DownloadFileDto } from '../dto/download/download-file.dto';
 
 @Controller('/download')
 export class FileDownloadController {
   constructor(
     private readonly fileService: FilesService,
-    private readonly fileDownloadService: FileDownloadService,
+    private readonly fileDownloadService: DownloadService,
   ) {}
 
-  @Post()
-  async downloadFile(@Body() body: DownloadFileDto, @Res() res: Response) {
+  @Post('/stream')
+  async downloadFile(@Body() body: DownloadFileMultipartDto, @Res() res: Response) {
     const fileDoc = await this.fileService.getFileByUploadId(body.uploadId);
 
     const mimeType = fileDoc?.mimeType || 'application/octet-stream'; // fallback
@@ -28,9 +29,20 @@ export class FileDownloadController {
     stream.pipe(res);
   }
 
-  @Post('url')
-  async downloadFileByURL(@Body() body: DownloadFileDto) {
-    const url = this.fileDownloadService.getDownloadLink(body.uploadId);
+  @Post('/url-public')
+  async downloadFileByURL(@Body() body: DownloadFileByTokenDto) {
+    const url = this.fileDownloadService.downloadFileByToken(body);
+    return { url };
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('/url-private')
+  async downloadFileByURLPrivate(@Body() body: DownloadFileDto, @Req() req: RequestWithUser) {
+    const downloadData = {
+      fileId: body.fileId,
+      userId: req.user.id,
+    };
+    const url = this.fileDownloadService.getDownloadLinkAuthenticated(downloadData);
     return { url };
   }
 }

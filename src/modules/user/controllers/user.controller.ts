@@ -1,37 +1,23 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
   Param,
   Delete,
   Res,
   Put,
-  UsePipes,
-  ValidationPipe,
   UseGuards,
   Query,
-  Req,
   HttpStatus,
 } from '@nestjs/common';
 import type { FastifyReply } from 'fastify';
 import { UsersService } from '../services/user.service';
-import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-  ApiBody,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
 import { User } from '../entities/user.entity';
-import { CreateUserResponse } from '../types/createUserResponse';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-guard';
 import { RolesGuard } from 'src/auth/guards/roles-guard';
 import { Roles } from 'src/auth/common/decorators/role.decorator';
-import { UserUpdateProfileDTO } from '../dto/update-profile.dto';
-import type { JwtAuthRequest } from 'src/types/express';
 
 @ApiTags('Users')
 @Controller('users')
@@ -86,16 +72,6 @@ export class UserController {
   @Roles('admin')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.updateUser(+id, updateUserDto);
-  }
-
-  @Put('/profile/update')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('user')
-  async updateProfile(
-    @Req() req: JwtAuthRequest,
-    @Body() dto: UserUpdateProfileDTO,
-  ) {
-    return this.userService.updateUserProfile(req.user.id, dto);
   }
 
   //Admin endpoint

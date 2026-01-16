@@ -1,20 +1,20 @@
-import { IsString, IsInt, ValidateNested } from "class-validator";
+import { IsString, IsInt, ValidateNested } from 'class-validator';
 
 export class PostgresConfig {
-    @IsInt()
-    host: string;
+  @IsInt()
+  host: string;
 
-    @IsInt()
-    port: number;
+  @IsInt()
+  port: number;
 
-    @IsString()
-    username: string;
+  @IsString()
+  username: string;
 
-    @IsString()
-    password: string;
+  @IsString()
+  password: string;
 
-    @IsString()
-    database: string;
+  @IsString()
+  database: string;
 }
 
 export class SwaggerConfig {
@@ -50,6 +50,28 @@ export class MongoConfig {
   uri: string;
 }
 
+export class S3Config {
+  @IsString()
+  endpoint: string;
+
+  @IsString()
+  bucket: string;
+
+  @IsString()
+  accessKeyId: string;
+
+  @IsString()
+  secretAccessKey: string;
+}
+
+export class CentrifugoConfig {
+  @IsString()
+  apiUrl: string;
+
+  @IsString()
+  apiKey: string;
+}
+
 export class AppConfig {
   @IsString()
   environment: string;
@@ -64,8 +86,14 @@ export class AppConfig {
   mongo: MongoConfig;
 
   @ValidateNested()
+  s3: S3Config;
+
+  @ValidateNested()
   swagger: SwaggerConfig;
 
   @ValidateNested()
   redis: RedisConfig;
+
+  @ValidateNested()
+  centrifugo: CentrifugoConfig;
 }
