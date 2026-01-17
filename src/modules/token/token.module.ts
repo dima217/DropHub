@@ -7,7 +7,7 @@ import { TokenController } from './controllers/token.controller';
 
 @Module({
   imports: [
-    ConfigModule, // чтобы ConfigService точно был доступен
+    ConfigModule, 
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({

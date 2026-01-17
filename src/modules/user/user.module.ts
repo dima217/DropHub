@@ -8,14 +8,11 @@ import { UsersService } from './services/user.service';
 import { ProfileService } from './services/profile.service';
 
 import { UserController } from './controllers/user.controller';
-import { ImageModule } from '../images/image.module';
-
 import { CacheModule } from '@cache/cache.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Profile]),
-    ImageModule,
     CacheModule
   ],
   controllers: [UserController],

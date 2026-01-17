@@ -4,8 +4,8 @@ import { JwtService } from '@nestjs/jwt';
 import { WsException } from '@nestjs/websockets';
 import { UsersService } from '@modules/user/services/user.service';
 import { UserPayload } from '@auth/types';
-import { JwtPayload } from '../types';
 import { USocket } from 'src/types/socket';
+import { JwtPayload } from '@auth/types';
 
 @Injectable()
 export class WsJwtAuthGuard implements CanActivate {

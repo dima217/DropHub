@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 import { Profile } from '../entities/profile.entity';
-import { ImageService } from 'src/modules/images/image.service';
 import { UserUpdateProfileDTO } from '../dto/update-profile.dto';
 
 @Injectable()
@@ -10,7 +9,6 @@ export class ProfileService {
   constructor(
     @InjectRepository(Profile)
     private profileRepository: Repository<Profile>,
-    private readonly imageService: ImageService,
   ) {}
 
   async createProfileTransactional(
@@ -43,11 +41,6 @@ export class ProfileService {
 
   async updateProfile(profileId: number, dto: UserUpdateProfileDTO): Promise<Profile> {
     const profile = await this.getProfileById(profileId);
-
-    if (dto.avatarUrl && dto.avatarUrl !== profile.avatarUrl && profile.avatarUrl) {
-      await this.imageService.deleteFileFromStorage(profile.avatarUrl);
-      profile.avatarUrl = dto.avatarUrl;
-    }
 
     if (dto.firstName) profile.firstName = dto.firstName;
     if (dto.lastName) profile.lastName = dto.lastName;

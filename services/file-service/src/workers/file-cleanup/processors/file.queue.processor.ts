@@ -1,10 +1,10 @@
+import { FileService } from '@/modules/file/file.service';
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
-import { FileClientService } from 'src/modules/file-client/services/file-client.service';
 
 @Processor('file-cleanup')
 export class FileCleanUpProcessor extends WorkerHost {
-  constructor(private readonly fileClient: FileClientService) {
+  constructor(private readonly fileService: FileService) {
     super();
   }
 
@@ -12,8 +12,7 @@ export class FileCleanUpProcessor extends WorkerHost {
     const { storedName } = job.data;
 
     try {
-      // Полное удаление файла: из S3, из всех комнат и из БД
-      await this.fileClient.deleteFileCompletely(storedName);
+      await this.fileService.deleteFileCompletely(storedName);
       console.log(`File cleanup completed: ${storedName}`);
     } catch (err) {
       console.error(`Error deleting file: ${storedName}`, err);
