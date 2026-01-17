@@ -15,6 +15,8 @@ import { AppConfig } from './config/configuration.interface';
 import { FileModule } from './modules/file/files.module';
 import { RoomModule } from './modules/room/room.module';
 import { UserStorageModule } from './modules/storage/user_storage.module';
+import { UserIpInterceptor } from '@common/interceptors/user.ip.interceptor';
+import { RolesGuard } from '@auth/guards/roles-guard';
 
 @Module({
   imports: [
@@ -38,6 +40,6 @@ import { UserStorageModule } from './modules/storage/user_storage.module';
     UserStorageModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, UserIpInterceptor, RolesGuard],
 })
 export class AppModule {}

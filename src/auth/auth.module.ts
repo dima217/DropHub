@@ -35,7 +35,7 @@ import { GoogleAuthService } from './services/google-auth.service';
     MailService,
     LocalStrategy,
     JwtStrategy,
-    RolesGuard,
+    // RolesGuard,
     TokenService,
     PasswordService,
     WsJwtAuthGuard,

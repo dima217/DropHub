@@ -16,9 +16,9 @@ import { ImageService } from './image.service';
 export class ImageController {
   constructor(private readonly imageService: ImageService) {}
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post('upload')
   @Roles('admin', 'user')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @UseInterceptors(FileInterceptor('file'))
   async uploadAvatar(@UploadedFile() file: Express.Multer.File) {
     if (!file) {

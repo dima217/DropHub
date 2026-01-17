@@ -1,7 +1,9 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { FileClientService } from 'src/modules/file-client/services/file-client.service';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 @Processor('file-cleanup')
 export class FileCleanUpProcessor extends WorkerHost {
   constructor(private readonly fileClient: FileClientService) {
