@@ -1,99 +1,109 @@
-import { IsString, IsInt, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsInt, IsOptional, IsString, ValidateNested } from 'class-validator';
 
 export class PostgresConfig {
+  @IsString()
+  host!: string;
+
   @IsInt()
-  host: string;
-
-  @IsInt()
-  port: number;
+  @Type(() => Number)
+  port!: number;
 
   @IsString()
-  username: string;
+  username!: string;
 
   @IsString()
-  password: string;
+  password!: string;
 
   @IsString()
-  database: string;
+  database!: string;
 }
 
 export class SwaggerConfig {
-  @IsString()
-  title: string;
+  @IsOptional() @IsString()
+  title?: string;
 
-  @IsString()
-  description: string;
+  @IsOptional() @IsString()
+  description?: string;
 
-  @IsString()
-  version: string;
+  @IsOptional() @IsString()
+  version?: string;
 
-  @IsString()
-  path: string;
+  @IsOptional() @IsString()
+  path?: string;
 
-  @IsString()
-  enable: string;
+  @IsOptional() @IsString()
+  enable?: string;
 }
 
 export class RedisConfig {
-  @IsString()
-  host: string;
+  @IsOptional() @IsString()
+  host?: string;
 
-  @IsInt()
-  port: number;
+  @IsOptional() @IsInt()
+  @Type(() => Number)
+  port?: number;
 
-  @IsString()
-  password: string;
+  @IsOptional() @IsString()
+  password?: string;
 }
 
 export class MongoConfig {
   @IsString()
-  uri: string;
+  uri!: string;
 }
 
 export class S3Config {
-  @IsString()
-  endpoint: string;
+  @IsOptional() @IsString()
+  endpoint?: string;
 
-  @IsString()
-  bucket: string;
+  @IsOptional() @IsString()
+  bucket?: string;
 
-  @IsString()
-  accessKeyId: string;
+  @IsOptional() @IsString()
+  accessKeyId?: string;
 
-  @IsString()
-  secretAccessKey: string;
+  @IsOptional() @IsString()
+  secretAccessKey?: string;
 }
 
 export class CentrifugoConfig {
-  @IsString()
-  apiUrl: string;
+  @IsOptional() @IsString()
+  apiUrl?: string;
 
-  @IsString()
-  apiKey: string;
+  @IsOptional() @IsString()
+  apiKey?: string;
 }
 
 export class AppConfig {
   @IsString()
-  environment: string;
+  environment!: string;
 
   @IsInt()
-  port: number;
+  @Type(() => Number)
+  port!: number;
 
   @ValidateNested()
-  postgres: PostgresConfig;
+  @Type(() => PostgresConfig)
+  postgres!: PostgresConfig;
 
   @ValidateNested()
-  mongo: MongoConfig;
+  @Type(() => MongoConfig)
+  mongo!: MongoConfig;
 
   @ValidateNested()
-  s3: S3Config;
+  @Type(() => S3Config)
+  s3!: S3Config;
 
   @ValidateNested()
-  swagger: SwaggerConfig;
+  @Type(() => SwaggerConfig)
+  swagger!: SwaggerConfig;
 
   @ValidateNested()
-  redis: RedisConfig;
+  @Type(() => RedisConfig)
+  redis!: RedisConfig;
 
   @ValidateNested()
-  centrifugo: CentrifugoConfig;
+  @Type(() => CentrifugoConfig)
+  centrifugo!: CentrifugoConfig;
 }

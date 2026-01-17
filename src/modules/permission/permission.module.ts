@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
-import { TokenModule } from '../token/token.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import {Permission} from '@modules/permission/entities/permission.entity';
+
 import { UniversalPermissionService } from './services/permission.service';
-import { TokenService } from '../token/services/token.service';
 import { PermissionController } from './permission.controller';
 
 @Module({
+  imports: [TypeOrmModule.forFeature([Permission])],
   controllers: [PermissionController],
-  exports: [UniversalPermissionService],
   providers: [UniversalPermissionService],
+  exports: [UniversalPermissionService],
 })
 export class PermissionModule {}

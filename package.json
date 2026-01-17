@@ -39,10 +39,12 @@
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/platform-fastify": "^11.1.2",
+    "@nestjs/platform-socket.io": "^11.1.12",
     "@nestjs/schedule": "^5.0.1",
     "@nestjs/serve-static": "^5.0.3",
     "@nestjs/swagger": "^11.0.3",
     "@nestjs/typeorm": "^11.0.0",
+    "@nestjs/websockets": "^11.1.12",
     "@sendgrid/mail": "7.7.0",
     "@types/bull": "^4.10.4",
     "@types/keyv": "^4.2.0",
@@ -56,7 +58,7 @@
     "axios": "^1.8.4",
     "bullmq": "^5.58.5",
     "cache-manager": "^5.2.0",
-    "cache-manager-redis-store": "^3.0.1",
+    "cache-manager-redis-yet": "^5.1.5",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "cookie-parser": "^1.4.7",
@@ -79,6 +81,7 @@
     "reflect-metadata": "^0.2.2",
     "resend": "^4.2.0",
     "rxjs": "^7.8.1",
+    "socket.io": "^4.8.3",
     "transformer": "^1.2.8",
     "typeorm": "^0.3.20",
     "uuid": "^11.1.0",
@@ -140,5 +143,6 @@
       "^@cache/(.*)$": "<rootDir>/cache/$1",
       "^@workers/(.*)$": "<rootDir>/workers/$1"
     }
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha256.c17d3797fb9a9115bf375e31bfd30058cac6bc9c3b8807a3d8cb2094794b51ca"
 }
