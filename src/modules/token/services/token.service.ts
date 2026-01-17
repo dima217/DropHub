@@ -35,7 +35,7 @@ export class TokenService {
     const tokenId = this.generateUniqueId();
     const fullPayload = { ...payload, tokenId };
 
-    return this.jwtService.sign(fullPayload, { expiresIn });
+    return this.jwtService.sign(fullPayload, { expiresIn: '7d' });
   }
 
   async validateToken(token: string): Promise<TokenPayload> {

@@ -70,7 +70,7 @@ export class UploadService {
       expiresAt: fileExpiresAt,
     });
 
-    await this.roomService.bindFileToRoom(resourceId, fileUploadMeta._id as string);
+    await this.roomService.bindFileToRoom(resourceId, fileUploadMeta._id.toString());
 
     return { url };
   }
@@ -107,7 +107,7 @@ export class UploadService {
       name: originalName,
       isDirectory: false,
       parentId: null,
-      fileId: fileUploadMeta._id as string,
+      fileId: fileUploadMeta._id.toString(),
     });
 
     return { url };
