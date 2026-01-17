@@ -1,6 +1,6 @@
+import { FileService } from '../../../modules/file/file.service';
 import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { FileService } from '@/modules/file/file.service';
 import { FileQueueService } from './file.queue.service';
 
 @Injectable()

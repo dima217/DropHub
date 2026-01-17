@@ -46,5 +46,16 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3"
+  },
+  "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/$1",
+    "^@modules/(.*)$": "<rootDir>/modules/$1",
+    "^@common/(.*)$": "<rootDir>/common/$1",
+    "^@config/(.*)$": "<rootDir>/config/$1",
+    "^@constants/(.*)$": "<rootDir>/constants/$1",
+    "^@utils/(.*)$": "<rootDir>/utils/$1",
+    "^@types/(.*)$": "<rootDir>/types/$1",
+    "^@cache/(.*)$": "<rootDir>/cache/$1",
+    "^@workers/(.*)$": "<rootDir>/workers/$1"
   }
 }

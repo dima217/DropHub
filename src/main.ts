@@ -10,7 +10,6 @@ import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // Подключаем микросервисы для обработки запросов от File Service
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {

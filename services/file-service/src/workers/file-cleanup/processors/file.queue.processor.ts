@@ -1,4 +1,4 @@
-import { FileService } from '@/modules/file/file.service';
+import { FileService } from '../../../modules/file/file.service';
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 
