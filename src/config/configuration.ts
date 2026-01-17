@@ -43,7 +43,7 @@ export const configuration = (): AppConfig => {
 
   const errors = validateSync(config);
   if (errors.length > 0) {
-    throw new Error(`Config validation error: ${errors.toString()}`);
+    throw new Error(`Config validation error: ${JSON.stringify(errors, null, 2)}`);
   }
 
   return config;

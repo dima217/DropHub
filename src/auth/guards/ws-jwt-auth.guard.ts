@@ -2,8 +2,8 @@ import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/commo
 import { Observable } from 'rxjs';
 import { JwtService } from '@nestjs/jwt';
 import { WsException } from '@nestjs/websockets';
-import { UsersService } from '@application/user/services/user.service';
-import { UserPayload } from '@application/user/types';
+import { UsersService } from '@modules/user/services/user.service';
+import { UserPayload } from '@auth/types';
 import { JwtPayload } from '../types';
 import { USocket } from 'src/types/socket';
 

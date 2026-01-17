@@ -1,24 +1,27 @@
-// src/shared/cache/redis.module.ts
 import { Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { createClient } from 'redis';
-import type { RedisClientType } from 'redis';
+
+type RedisClient = ReturnType<typeof createClient>;
 
 @Module({
+  imports: [ConfigModule],
   providers: [
     {
       provide: 'REDIS_CLIENT',
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService): Promise<RedisClientType> => {
+      useFactory: async (configService: ConfigService): Promise<RedisClient> => {
         const client = createClient({
           socket: {
             host: configService.get<string>('REDIS_HOST'),
-            port: configService.get<number>('REDIS_PORT'),
+            port: Number(configService.get<string>('REDIS_PORT')),
           },
           password: configService.get<string>('REDIS_PASSWORD'),
-        }) as RedisClientType;
+        });
 
+        client.on('error', (err) => console.error('Redis Client Error', err));
         await client.connect();
+
         return client;
       },
     },

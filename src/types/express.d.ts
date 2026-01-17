@@ -1,4 +1,4 @@
-import { LoginUserPayload, UserPayload } from '@application/user/types';
+import { LoginUserPayload, UserPayload } from '@auth/types';
 import { Request } from 'express';
 
 declare module 'express' {

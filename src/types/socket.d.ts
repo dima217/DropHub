@@ -1,4 +1,4 @@
-import { UserPayload } from '@application/user/types';
+import { UserPayload } from '@auth/types';
 import { Socket } from 'socket.io';
 interface AuthHandshake {
   auth: {
